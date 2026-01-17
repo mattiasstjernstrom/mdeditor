@@ -15,9 +15,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const findInput = document.getElementById('find-input');
     const replaceInput = document.getElementById('replace-input');
 
+    const sidebar = document.querySelector('.sidebar');
+    const menuToggle = document.getElementById('menu-toggle');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
     const outlineBtn = document.getElementById('outline-btn');
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
+    const linkBtn = document.getElementById('link-btn');
+    const inlineCodeBtn = document.getElementById('inline-code-btn');
 
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
@@ -271,6 +276,49 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleSplitViewBtn.addEventListener('click', toggleSplitView);
     }
 
+    // Sidebar Toggle
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    };
+
+    if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
+    if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+
+    // Link Button
+    if (linkBtn) {
+        linkBtn.addEventListener('click', () => {
+            const url = prompt('Ange URL:');
+            if (url) {
+                if (lastFocusedElement === sourceTextarea) {
+                    wrapSourceSelection('[', `](${url})`);
+                } else {
+                    document.execCommand('createLink', false, url);
+                    syncToSource();
+                }
+            }
+        });
+    }
+
+    // Inline Code Button
+    if (inlineCodeBtn) {
+        inlineCodeBtn.addEventListener('click', () => {
+            if (lastFocusedElement === sourceTextarea) {
+                wrapSourceSelection('`', '`');
+            } else {
+                // Inline code in WYSIWYG is tricky without custom logic, using a span or simple tag
+                const selection = window.getSelection();
+                if (!selection.isCollapsed) {
+                    const range = selection.getRangeAt(0);
+                    const code = document.createElement('code');
+                    code.appendChild(range.extractContents());
+                    range.insertNode(code);
+                    syncToSource();
+                }
+            }
+        });
+    }
+
     // Copy Source Button
     if (copySourceBtn) {
         copySourceBtn.addEventListener('click', () => {
@@ -410,6 +458,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'bold': { before: '**', after: '**' },
         'italic': { before: '_', after: '_' },
         'strikeThrough': { before: '~~', after: '~~' },
+        'insertUnorderedList': { before: '- ', after: '' },
+        'insertOrderedList': { before: '1. ', after: '' },
+        'inlineCode': { before: '`', after: '`' },
         'formatBlock': {
             'h1': { before: '# ', after: '' },
             'h2': { before: '## ', after: '' },
