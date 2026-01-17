@@ -397,6 +397,12 @@ body {
     border-color: var(--text-primary);
 }
 
+.btn.secondary.active {
+    background-color: var(--accent-light);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
 /* Workspace (Split View) */
 .workspace {
     flex: 1;
