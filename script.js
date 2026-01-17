@@ -22,11 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const outlineBtn = document.getElementById('outline-btn');
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
+    const lineIndicator = document.getElementById('line-indicator');
 
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
 
-    // Track which side was last edited to prevent loops
     let lastEditedBy = null;
 
     // --- Core Functions ---
@@ -52,32 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const syncToEditor = () => {
         lastEditedBy = 'source';
         const html = marked.parse(sourceTextarea.value);
-
-        // Get current line to restore highlight after sync
-        const lineNum = getSourceLineNumber();
-
-        // Only update if content actually changed
         if (editor.innerHTML !== html) {
             editor.innerHTML = html;
             updateStats();
             updateOutline();
         }
-
-        // Immediately reapply highlight (prevents blinking)
-        const lines = sourceTextarea.value.split('\n');
-        let elementIndex = 0;
-        for (let i = 0; i < lineNum; i++) {
-            if ((lines[i] || '').trim().length > 0) elementIndex++;
-        }
-        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
-        if (elements[elementIndex - 1]) {
-            elements[elementIndex - 1].classList.add('highlight-sync');
-        }
-
         setTimeout(() => lastEditedBy = null, 100);
     };
-
-    const lineIndicator = document.getElementById('line-indicator');
 
     // Get current line number in textarea
     const getSourceLineNumber = () => {
@@ -85,114 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.split('\n').length;
     };
 
-    const sourceLineHighlight = document.getElementById('source-line-highlight');
-
-    // Get actual line height from textarea
-    const getLineHeight = () => {
-        const style = window.getComputedStyle(sourceTextarea);
-        return parseFloat(style.lineHeight) || 24;
-    };
-
-    // Get padding top from textarea
-    const getPaddingTop = () => {
-        const style = window.getComputedStyle(sourceTextarea);
-        return parseFloat(style.paddingTop) || 0;
-    };
-
-    // Position the line highlight overlay in source textarea
-    const updateSourceLineHighlight = (lineNum) => {
-        if (sourceLineHighlight && sourceTextarea) {
-            const lineHeight = getLineHeight();
-            const paddingTop = getPaddingTop();
-            const scrollTop = sourceTextarea.scrollTop;
-            const top = paddingTop + (lineNum - 1) * lineHeight - scrollTop;
-            sourceLineHighlight.style.top = `${top}px`;
-            sourceLineHighlight.style.height = `${lineHeight}px`;
-            sourceLineHighlight.style.display = top >= -lineHeight ? 'block' : 'none';
-        }
-    };
-
-    // When cursor is in SOURCE -> highlight corresponding element in WYSIWYG
-    const highlightInWysiwyg = () => {
-        // Remove previous highlights
-        editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
-
-        const lineNum = getSourceLineNumber();
+    const updateLineIndicator = () => {
         if (lineIndicator) {
-            lineIndicator.textContent = `Rad ${lineNum}`;
-        }
-
-        // Find the element that corresponds to this line
-        const lines = sourceTextarea.value.split('\n');
-        let elementIndex = 0;
-        for (let i = 0; i < lineNum; i++) {
-            const line = lines[i] || '';
-            if (line.trim().length > 0) {
-                elementIndex++;
-            }
-        }
-
-        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
-        if (elements[elementIndex - 1]) {
-            elements[elementIndex - 1].classList.add('highlight-sync');
-        }
-
-        // Hide source line highlight when editing source
-        if (sourceLineHighlight) sourceLineHighlight.style.display = 'none';
-    };
-
-    // When cursor is in WYSIWYG -> highlight corresponding line in source
-    const highlightInSource = () => {
-        // Remove WYSIWYG highlights
-        editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
-
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        let node = selection.anchorNode;
-        let foundElement = null;
-
-        while (node && node !== editor) {
-            if (node.nodeType === 1) {
-                const tagName = node.tagName.toLowerCase();
-                if (['p', 'h1', 'h2', 'h3', 'h4', 'li', 'blockquote', 'pre', 'ul', 'ol'].includes(tagName)) {
-                    foundElement = node;
-                    break;
-                }
-            }
-            node = node.parentNode;
-        }
-
-        if (foundElement) {
-            const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
-            const index = Array.from(elements).indexOf(foundElement);
-
-            if (index >= 0) {
-                // Calculate estimated line in source
-                const lines = sourceTextarea.value.split('\n');
-                let targetLine = 0;
-                let elementCount = 0;
-
-                for (let i = 0; i < lines.length; i++) {
-                    if (lines[i].trim().length > 0) {
-                        if (elementCount === index) {
-                            targetLine = i + 1;
-                            break;
-                        }
-                        elementCount++;
-                    }
-                }
-
-                if (lineIndicator) {
-                    lineIndicator.textContent = `Rad ${targetLine || index + 1}`;
-                }
-
-                // Show line highlight overlay in source
-                updateSourceLineHighlight(targetLine || index + 1);
-            }
+            lineIndicator.textContent = `Rad ${getSourceLineNumber()}`;
         }
     };
-
 
     const toggleSplitView = () => {
         if (sourceWrapper) {
@@ -200,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
             toggleSplitViewBtn.classList.toggle('active');
             if (!sourceWrapper.classList.contains('hidden')) {
                 syncToSource();
-                sourceTextarea.focus();
             }
         }
     };
@@ -250,23 +127,18 @@ document.addEventListener('DOMContentLoaded', () => {
         syncToSource();
         updateOutline();
         saveToLocalStorage();
-        highlightInSource(); // Keep line indicator updated while typing
         setTimeout(() => lastEditedBy = null, 100);
     });
 
-    // Track cursor in WYSIWYG -> update line indicator in source
-    editor.addEventListener('click', highlightInSource);
-    editor.addEventListener('keyup', highlightInSource);
-
-    // Source Textarea input - live sync + keep highlight updated
+    // Source Textarea input - live sync
     sourceTextarea.addEventListener('input', () => {
         syncToEditor();
-        highlightInWysiwyg(); // Keep highlight visible while typing
+        updateLineIndicator();
     });
 
-    // Track cursor in source -> highlight element in WYSIWYG
-    sourceTextarea.addEventListener('click', highlightInWysiwyg);
-    sourceTextarea.addEventListener('keyup', highlightInWysiwyg);
+    // Update line indicator on cursor move in source
+    sourceTextarea.addEventListener('click', updateLineIndicator);
+    sourceTextarea.addEventListener('keyup', updateLineIndicator);
 
     // Split View Button
     if (toggleSplitViewBtn) {
