@@ -284,16 +284,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (commandInput) commandInput.addEventListener('input', (e) => renderCommands(e.target.value));
 
-    // Wrap selected text in textarea with markdown syntax
+    // Wrap or unwrap selected text in textarea with markdown syntax
     const wrapSourceSelection = (before, after) => {
         const start = sourceTextarea.selectionStart;
         const end = sourceTextarea.selectionEnd;
         const text = sourceTextarea.value;
         const selected = text.substring(start, end);
 
-        sourceTextarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
-        sourceTextarea.selectionStart = start + before.length;
-        sourceTextarea.selectionEnd = end + before.length;
+        // Check if already wrapped - if so, unwrap
+        const beforeStart = start - before.length;
+        const afterEnd = end + after.length;
+        const textBefore = text.substring(Math.max(0, beforeStart), start);
+        const textAfter = text.substring(end, Math.min(text.length, afterEnd));
+
+        if (textBefore === before && textAfter === after) {
+            // Unwrap: remove the markers
+            sourceTextarea.value = text.substring(0, beforeStart) + selected + text.substring(afterEnd);
+            sourceTextarea.selectionStart = beforeStart;
+            sourceTextarea.selectionEnd = beforeStart + selected.length;
+        } else {
+            // Wrap: add the markers
+            sourceTextarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
+            sourceTextarea.selectionStart = start + before.length;
+            sourceTextarea.selectionEnd = end + before.length;
+        }
+
         sourceTextarea.focus();
         syncToEditor();
     };
