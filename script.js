@@ -26,8 +26,27 @@ document.addEventListener('DOMContentLoaded', () => {
     const insertTableBtn = document.getElementById('btn-insert-table');
     const insertTasklistBtn = document.getElementById('btn-insert-tasklist');
 
+    // Language Modal Elements
+    const languageModal = document.getElementById('language-modal');
+    const languageInput = document.getElementById('language-input');
+    const saveLanguageBtn = document.getElementById('save-language');
+    const closeLanguageModal = document.getElementById('close-language-modal');
+    const cancelLanguageBtn = document.getElementById('cancel-language');
+    let activeCodeWrapper = null;
+
     // Configure Marked for GFM
+    const renderer = new marked.Renderer();
+    renderer.code = (args) => {
+        // Handle both old (code, lang) and new ({text, lang}) marked API
+        const code = typeof args === 'string' ? args : (args.text || '');
+        let lang = typeof args === 'string' ? arguments[1] : (args.lang || '');
+        // Display 'code' if lang is empty or 'text'
+        const displayLang = (!lang || lang === 'text') ? 'code' : lang;
+        return `<div class="code-block-wrapper" data-lang="${lang || 'text'}"><div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">${displayLang}</span></div><pre><code class="language-${lang || 'text'}">${code}</code></pre></div>`;
+    };
+
     marked.setOptions({
+        renderer: renderer,
         gfm: true,
         breaks: true,
         headerIds: true,
@@ -36,6 +55,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
+
+    // Custom Turndown rule for code block wrappers
+    turndownService.addRule('codeBlockWrapper', {
+        filter: (node) => node.nodeName === 'DIV' && node.classList.contains('code-block-wrapper'),
+        replacement: (content, node) => {
+            const lang = node.getAttribute('data-lang') || '';
+            // Only get text from the pre/code tag, ignoring the interactive header
+            const codeNode = node.querySelector('pre');
+            const code = codeNode ? codeNode.textContent : '';
+            if (!code.trim()) return '';
+            return '\n```' + lang + '\n' + code + '\n```\n';
+        }
+    });
 
     let lastEditedBy = null;
     let lastFocusedElement = null;
@@ -72,10 +104,26 @@ document.addEventListener('DOMContentLoaded', () => {
         const html = marked.parse(sourceTextarea.value);
         if (editor.innerHTML !== html) {
             editor.innerHTML = html;
-            // Enable checkboxes for task lists
-            editor.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-                cb.removeAttribute('disabled');
+            // Enable checkboxes for task lists and fix structure
+            editor.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.removeAttribute('disabled'));
+
+            // Post-process: ensure code blocks have wrappers if marked didn't add them
+            editor.querySelectorAll('pre:not(.code-block-wrapper pre)').forEach(pre => {
+                const codeNode = pre.querySelector('code');
+                let lang = codeNode ? (codeNode.className.match(/language-(\w+)/) || [null, ''])[1] : '';
+                const displayLang = (!lang || lang === 'text') ? 'code' : lang;
+
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+                wrapper.setAttribute('data-lang', lang || 'text');
+                wrapper.innerHTML = `<div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">${displayLang}</span></div>`;
+                pre.parentNode.insertBefore(wrapper, pre);
+                wrapper.appendChild(pre);
             });
+
+            // Cleanup: remove any legacy delete buttons that might have sneaked in
+            editor.querySelectorAll('.code-delete-btn').forEach(btn => btn.remove());
+
             updateStats();
             updateOutline();
         }
@@ -143,19 +191,23 @@ document.addEventListener('DOMContentLoaded', () => {
         saveToLocalStorage();
     };
 
-    // Check if cursor is inside specific block type
-    const isInsideBlock = (tagName) => {
+    // Check if cursor is inside specific block type and return the node
+    const getBlockParent = (tagName, className = null) => {
         const selection = window.getSelection();
-        if (!selection.rangeCount) return false;
+        if (!selection.rangeCount) return null;
         let node = selection.anchorNode;
         while (node && node !== editor) {
-            if (node.nodeType === 1 && node.tagName.toLowerCase() === tagName.toLowerCase()) {
-                return true;
+            if (node.nodeType === 1) {
+                const matchesTag = node.tagName.toLowerCase() === tagName.toLowerCase();
+                const matchesClass = !className || node.classList.contains(className);
+                if (matchesTag && matchesClass) return node;
             }
             node = node.parentNode;
         }
-        return false;
+        return null;
     };
+
+    const isInsideBlock = (tagName) => !!getBlockParent(tagName);
 
     // Check if cursor is inside markdown syntax in source textarea
     // This searches outward from cursor to find enclosing markers
@@ -206,6 +258,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return lineText.startsWith(prefix);
     };
 
+    // Check if cursor is inside a fenced code block in source view
+    const isInsideFencedCodeBlock = () => {
+        const text = sourceTextarea.value;
+        const pos = sourceTextarea.selectionStart;
+        const before = text.substring(0, pos);
+        const after = text.substring(pos);
+
+        // Count ``` before and after. This is a simple heuristic.
+        const codeBlocksBefore = (before.match(/^```/gm) || []).length;
+        const codeBlocksAfter = (after.match(/^```/gm) || []).length;
+
+        // If we have an odd number before, we're likely inside
+        return codeBlocksBefore % 2 !== 0;
+    };
+
     // Update active states on toolbar buttons
     const updateButtonStates = () => {
         const isInSource = lastFocusedElement === sourceTextarea || document.activeElement === sourceTextarea;
@@ -227,6 +294,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     isActive = isOnHeadingLine('# ');
                 } else if (command === 'formatBlock' && value === 'h2') {
                     isActive = isOnHeadingLine('## ');
+                } else if (command === 'formatBlock' && value === 'pre') {
+                    isActive = isInsideFencedCodeBlock();
                 }
             } else {
                 // WYSIWYG mode
@@ -235,25 +304,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (command === 'bold') {
                     // Browsers often return true for bold inside headings.
                     // We check if it's actually wrapped in a bold tag.
-                    isActive = document.queryCommandState(command);
-                    if (isActive && (isInsideBlock('h1') || isInsideBlock('h2') || isInsideBlock('h3'))) {
-                        // Check if there's an actual bold tag between the selection and the heading block
-                        const selection = window.getSelection();
-                        if (selection.rangeCount > 0) {
-                            let node = selection.anchorNode;
-                            let foundBoldTag = false;
-                            while (node && node !== editor) {
-                                if (node.nodeType === 1) {
-                                    if (['STRONG', 'B'].includes(node.tagName)) {
-                                        foundBoldTag = true;
-                                        break;
-                                    }
-                                    if (['H1', 'H2', 'H3'].includes(node.tagName)) break;
+                    const selection = window.getSelection();
+                    if (selection.rangeCount > 0) {
+                        let node = selection.anchorNode;
+                        let foundBoldTag = false;
+                        while (node && node !== editor) {
+                            if (node.nodeType === 1) {
+                                if (['STRONG', 'B'].includes(node.tagName)) {
+                                    foundBoldTag = true;
+                                    break;
                                 }
-                                node = node.parentNode;
+                                if (['H1', 'H2', 'H3'].includes(node.tagName)) break;
                             }
-                            isActive = foundBoldTag;
+                            node = node.parentNode;
                         }
+                        isActive = foundBoldTag;
                     }
                 } else {
                     isActive = document.queryCommandState(command);
@@ -293,11 +358,105 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update toolbar button active states when cursor moves in WYSIWYG
     editor.addEventListener('click', updateButtonStates);
     editor.addEventListener('keyup', updateButtonStates);
+
+    // Handle Enter key inside code blocks and other structures
+    editor.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            const pre = getBlockParent('pre');
+            if (pre) {
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+
+                if (!e.shiftKey) {
+                    // Regular Enter: Break out of the code block
+                    e.preventDefault();
+                    const p = document.createElement('p');
+                    p.innerHTML = '<br>';
+
+                    const wrapper = getBlockParent('div', 'code-block-wrapper');
+                    const target = wrapper || pre;
+                    target.after(p);
+
+                    // Position cursor in the new paragraph
+                    const newRange = document.createRange();
+                    newRange.setStart(p, 0);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+
+                    syncToSource();
+                } else {
+                    // Shift+Enter: Insert newline inside code block
+                    e.preventDefault();
+                    const newline = document.createTextNode('\n');
+                    range.deleteContents();
+                    range.insertNode(newline);
+                    range.setStartAfter(newline);
+                    range.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+
+                    syncToSource();
+                }
+            }
+        }
+    }, true); // Use capture phase to ensure we intercept it before browser splits tags
+
     document.addEventListener('selectionchange', () => {
         if (document.activeElement === editor) {
             updateButtonStates();
         }
     });
+
+    // Handle clicks on interactive elements within the editor
+    editor.addEventListener('click', (e) => {
+        // 1. Change Code Language (using Modal)
+        if (e.target.classList.contains('code-lang-tag')) {
+            openLanguageModalFn(e.target.closest('.code-block-wrapper'));
+            return;
+        }
+
+        // Update states as usual
+        updateButtonStates();
+    });
+
+    // Language Modal Logic
+    const openLanguageModalFn = (wrapper) => {
+        activeCodeWrapper = wrapper;
+        languageModal.classList.remove('hidden');
+        languageInput.value = wrapper.getAttribute('data-lang') || 'text';
+        languageInput.focus();
+        languageInput.select();
+    };
+
+    const applyLanguage = () => {
+        const lang = languageInput.value.trim();
+        const safeLang = lang || 'text';
+        const displayLang = (!lang || lang === 'text') ? 'code' : lang;
+
+        if (activeCodeWrapper) {
+            activeCodeWrapper.setAttribute('data-lang', safeLang);
+            const tag = activeCodeWrapper.querySelector('.code-lang-tag');
+            if (tag) tag.innerText = displayLang;
+            const codeNode = activeCodeWrapper.querySelector('code');
+            if (codeNode) codeNode.className = `language-${safeLang}`;
+            syncToSource();
+        }
+        languageModal.classList.add('hidden');
+    };
+
+    saveLanguageBtn.onclick = applyLanguage;
+    languageInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            applyLanguage();
+        }
+    };
+    closeLanguageModal.onclick = () => languageModal.classList.add('hidden');
+    cancelLanguageBtn.onclick = () => languageModal.classList.add('hidden');
+
+    // Close on backdrop click
+    languageModal.querySelector('.modal-backdrop').onclick = () => languageModal.classList.add('hidden');
 
     // Split View Button
     if (toggleSplitViewBtn) {
@@ -330,35 +489,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inline Code Button
     if (inlineCodeBtn) {
-        inlineCodeBtn.addEventListener('click', () => {
+        inlineCodeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             if (lastFocusedElement === sourceTextarea) {
                 wrapSourceSelection('`', '`');
             } else {
                 const selection = window.getSelection();
-                if (!selection.isCollapsed) {
+                if (!selection.rangeCount) return;
+
+                // Toggle logic: if already inside <code>, unwrap it.
+                let node = selection.anchorNode;
+                let codeNode = null;
+                while (node && node !== editor) {
+                    if (node.nodeType === 1 && node.tagName.toLowerCase() === 'code') {
+                        codeNode = node;
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+
+                if (codeNode) {
+                    const parent = codeNode.parentNode;
+                    while (codeNode.firstChild) {
+                        parent.insertBefore(codeNode.firstChild, codeNode);
+                    }
+                    parent.removeChild(codeNode);
+                } else if (!selection.isCollapsed) {
                     const range = selection.getRangeAt(0);
                     const code = document.createElement('code');
                     code.appendChild(range.extractContents());
                     range.insertNode(code);
-                    syncToSource();
                 }
+
+                editor.focus();
+                syncToSource();
+                updateButtonStates();
             }
         });
     }
+
+    const insertAtCursor = (html, markdown) => {
+        if (lastFocusedElement === sourceTextarea) {
+            const start = sourceTextarea.selectionStart;
+            const end = sourceTextarea.selectionEnd;
+            sourceTextarea.value = sourceTextarea.value.substring(0, start) + markdown + sourceTextarea.value.substring(end);
+            syncToEditor();
+        } else {
+            editor.focus();
+            document.execCommand('insertHTML', false, html);
+            syncToSource();
+        }
+    };
 
     // Insert Table
     if (insertTableBtn) {
         insertTableBtn.addEventListener('click', () => {
             const tableMd = '\n| Rubrik 1 | Rubrik 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n';
-            if (lastFocusedElement === sourceTextarea) {
-                const start = sourceTextarea.selectionStart;
-                const end = sourceTextarea.selectionEnd;
-                sourceTextarea.value = sourceTextarea.value.substring(0, start) + tableMd + sourceTextarea.value.substring(end);
-                syncToEditor();
-            } else {
-                editor.innerHTML += marked.parse(tableMd);
-                syncToSource();
-            }
+            insertAtCursor(marked.parse(tableMd), tableMd);
         });
     }
 
@@ -366,15 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (insertTasklistBtn) {
         insertTasklistBtn.addEventListener('click', () => {
             const taskMd = '\n- [ ] Uppgift 1\n- [ ] Uppgift 2\n';
-            if (lastFocusedElement === sourceTextarea) {
-                const start = sourceTextarea.selectionStart;
-                const end = sourceTextarea.selectionEnd;
-                sourceTextarea.value = sourceTextarea.value.substring(0, start) + taskMd + sourceTextarea.value.substring(end);
-                syncToEditor();
-            } else {
-                editor.innerHTML += marked.parse(taskMd);
-                syncToSource();
-            }
+            insertAtCursor(marked.parse(taskMd), taskMd);
         });
     }
 
@@ -512,6 +691,35 @@ document.addEventListener('DOMContentLoaded', () => {
         updateButtonStates();
     };
 
+    const toggleMarkdownCodeBlock = () => {
+        const text = sourceTextarea.value;
+        const start = sourceTextarea.selectionStart;
+        const end = sourceTextarea.selectionEnd;
+        const selected = text.substring(start, end);
+
+        if (isInsideFencedCodeBlock()) {
+            // Unwrapping logic is already handled by syncToEditor if fences are removed manually.
+            // But for a toggle, we find the fence and remove it.
+            const before = text.substring(0, start);
+            const after = text.substring(end);
+
+            // Find start and end fences
+            const lastStartFence = before.lastIndexOf('\n```');
+            const nextEndFence = after.indexOf('```');
+
+            if (lastStartFence !== -1 && nextEndFence !== -1) {
+                const head = text.substring(0, lastStartFence);
+                const tail = text.substring(end + nextEndFence + 3);
+                const middle = text.substring(lastStartFence, end + nextEndFence).replace(/^```\w*\n?/, '').replace(/\n?```$/, '');
+                sourceTextarea.value = (head + '\n' + middle + tail).trim();
+            }
+        } else {
+            sourceTextarea.value = text.substring(0, start) + `\n\`\`\`text\n` + selected + `\n\`\`\`\n` + text.substring(end);
+        }
+        syncToEditor();
+        updateButtonStates();
+    };
+
     // Markdown syntax map for toolbar commands
     const markdownSyntax = {
         'bold': { before: '**', after: '**' },
@@ -528,6 +736,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    const toggleCodeBlock = () => {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const wrapper = getBlockParent('div', 'code-block-wrapper');
+        const pre = getBlockParent('pre');
+
+        if (wrapper || pre) {
+            // Remove code block: convert to paragraphs
+            const target = wrapper || pre;
+            const text = target.textContent;
+            const lines = text.split('\n').filter(l => l.trim() !== '');
+            const fragment = document.createDocumentFragment();
+            lines.forEach(line => {
+                const p = document.createElement('p');
+                p.textContent = line;
+                fragment.appendChild(p);
+            });
+            const parent = target.closest('.code-block-wrapper') || target;
+            parent.parentNode.replaceChild(fragment, parent);
+        } else {
+            // Create code block
+            const selectedText = selection.toString() || 'kod här';
+            const html = `<div class="code-block-wrapper" data-lang="text"><div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">code</span></div><pre><code class="language-text">${selectedText}</code></pre></div><p><br></p>`;
+            document.execCommand('insertHTML', false, html);
+        }
+        editor.focus();
+        syncToSource();
+        updateButtonStates();
+    };
+
     // Toolbar Buttons
     document.querySelectorAll('[data-command]').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -535,8 +774,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const command = btn.getAttribute('data-command');
             const value = btn.getAttribute('data-value');
 
-            // Check if source textarea was last focused
             if (lastFocusedElement === sourceTextarea) {
+                if (command === 'formatBlock' && value === 'pre') {
+                    toggleMarkdownCodeBlock();
+                    return;
+                }
+
                 let syntax;
                 if (command === 'formatBlock' && markdownSyntax.formatBlock[value]) {
                     syntax = markdownSyntax.formatBlock[value];
@@ -548,12 +791,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     wrapSourceSelection(syntax.before, syntax.after);
                     return;
                 }
+            } else {
+                // WYSIWYG Logic
+                if (command === 'formatBlock') {
+                    if (value === 'pre') {
+                        toggleCodeBlock();
+                    } else if (isInsideBlock(value)) {
+                        document.execCommand('formatBlock', false, 'p');
+                    } else {
+                        document.execCommand(command, false, value);
+                    }
+                } else {
+                    document.execCommand(command, false, value);
+                }
+                editor.focus();
+                syncToSource();
+                updateButtonStates();
             }
-
-            // Default: apply to WYSIWYG
-            document.execCommand(command, false, value);
-            editor.focus();
-            syncToSource();
         });
     });
 
@@ -561,6 +815,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('md-flow-content');
     if (saved) {
         editor.innerHTML = saved;
+        // Migration: Remove legacy delete buttons from saved content
+        editor.querySelectorAll('.code-delete-btn').forEach(btn => btn.remove());
+
         editor.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.removeAttribute('disabled');
         });

@@ -135,10 +135,6 @@
                 <button id="menu-toggle" class="btn secondary icon-only">
                     <i class="ph ph-list"></i>
                 </button>
-                <div class="document-info">
-                    <h1 class="doc-title" contenteditable="true">Namnlöst Dokument</h1>
-                    <span class="save-status">Sparat</span>
-                </div>
 
                 <div class="actions">
                     <button id="toggle-split-view" class="btn secondary">
@@ -296,6 +292,28 @@
                             <div class="keys"><kbd>Ctrl</kbd> + <kbd>/</kbd></div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="modal-backdrop"></div>
+        </div>
+
+        <!-- Language Selection Modal -->
+        <div id="language-modal" class="modal hidden">
+            <div class="modal-content shortcuts-content" style="max-width: 400px;">
+                <div class="modal-header">
+                    <h2>Kodspråk</h2>
+                    <button id="close-language-modal" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="modal-body" style="background: white; color: var(--text-primary); padding: 1.5rem; display: block;">
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 0.75rem;">Ange programmeringsspråk (t.ex. javascript, py, css):</p>
+                    <div class="command-input-container" style="border: 1px solid var(--border-color); border-radius: 0.5rem; background: #f9fafb;">
+                        <i class="ph ph-code" style="color: var(--text-secondary);"></i>
+                        <input type="text" id="language-input" placeholder="javascript" style="background: transparent; border: none; outline: none; padding: 0.5rem; width: 100%; color: var(--text-primary); font-family: var(--font-mono);">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="save-language" class="btn primary">Spara</button>
+                    <button id="cancel-language" class="btn secondary">Avbryt</button>
                 </div>
             </div>
             <div class="modal-backdrop"></div>
