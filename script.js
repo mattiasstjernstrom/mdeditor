@@ -141,15 +141,43 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Check if cursor is inside markdown syntax in source textarea
-    const isInsideMarkdownSyntax = (before, after) => {
-        const start = sourceTextarea.selectionStart;
-        const end = sourceTextarea.selectionEnd;
+    // This searches outward from cursor to find enclosing markers
+    const isInsideMarkdownSyntax = (marker) => {
+        const pos = sourceTextarea.selectionStart;
         const text = sourceTextarea.value;
 
-        const textBefore = text.substring(Math.max(0, start - before.length), start);
-        const textAfter = text.substring(end, Math.min(text.length, end + after.length));
+        // Get the current line
+        const lineStart = text.lastIndexOf('\n', pos - 1) + 1;
+        const lineEnd = text.indexOf('\n', pos);
+        const line = text.substring(lineStart, lineEnd === -1 ? text.length : lineEnd);
+        const posInLine = pos - lineStart;
 
-        return textBefore === before && textAfter === after;
+        // Find all marker positions in the line
+        const markerLen = marker.length;
+        let inMarker = false;
+        let i = 0;
+
+        while (i < line.length) {
+            if (line.substring(i, i + markerLen) === marker) {
+                if (!inMarker) {
+                    // Opening marker - check if cursor is after it
+                    if (posInLine > i) {
+                        inMarker = true;
+                    }
+                } else {
+                    // Closing marker - check if cursor is before it
+                    if (posInLine <= i) {
+                        return true; // Cursor is between markers
+                    }
+                    inMarker = false;
+                }
+                i += markerLen;
+            } else {
+                i++;
+            }
+        }
+
+        return false;
     };
 
     // Check current line for heading prefix
@@ -173,11 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isInSource) {
                 // Check markdown syntax in source view
                 if (command === 'bold') {
-                    isActive = isInsideMarkdownSyntax('**', '**');
+                    isActive = isInsideMarkdownSyntax('**');
                 } else if (command === 'italic') {
-                    isActive = isInsideMarkdownSyntax('_', '_');
+                    isActive = isInsideMarkdownSyntax('_');
                 } else if (command === 'strikeThrough') {
-                    isActive = isInsideMarkdownSyntax('~~', '~~');
+                    isActive = isInsideMarkdownSyntax('~~');
                 } else if (command === 'formatBlock' && value === 'h1') {
                     isActive = isOnHeadingLine('# ');
                 } else if (command === 'formatBlock' && value === 'h2') {
@@ -337,19 +365,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = sourceTextarea.value;
         const selected = text.substring(start, end);
 
-        // Check if already wrapped - if so, unwrap
+        // Case 1: Markers are OUTSIDE selection (e.g. cursor between **text**)
         const beforeStart = start - before.length;
         const afterEnd = end + after.length;
         const textBefore = text.substring(Math.max(0, beforeStart), start);
         const textAfter = text.substring(end, Math.min(text.length, afterEnd));
 
-        if (textBefore === before && textAfter === after) {
-            // Unwrap: remove the markers
+        if (beforeStart >= 0 && textBefore === before && textAfter === after) {
+            // Unwrap: remove the markers outside
             sourceTextarea.value = text.substring(0, beforeStart) + selected + text.substring(afterEnd);
             sourceTextarea.selectionStart = beforeStart;
             sourceTextarea.selectionEnd = beforeStart + selected.length;
-        } else {
-            // Wrap: add the markers
+        }
+        // Case 2: Markers are INSIDE selection (e.g. selected "**text**")
+        else if (selected.startsWith(before) && selected.endsWith(after) && selected.length > before.length + after.length) {
+            // Unwrap: remove markers from inside selection
+            const unwrapped = selected.substring(before.length, selected.length - after.length);
+            sourceTextarea.value = text.substring(0, start) + unwrapped + text.substring(end);
+            sourceTextarea.selectionStart = start;
+            sourceTextarea.selectionEnd = start + unwrapped.length;
+        }
+        // Case 3: No markers - wrap the text
+        else {
             sourceTextarea.value = text.substring(0, start) + before + selected + after + text.substring(end);
             sourceTextarea.selectionStart = start + before.length;
             sourceTextarea.selectionEnd = end + before.length;
@@ -357,6 +394,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         sourceTextarea.focus();
         syncToEditor();
+        updateButtonStates();
     };
 
     // Markdown syntax map for toolbar commands
