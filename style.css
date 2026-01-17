@@ -442,7 +442,20 @@ body {
 
 .source-content {
     flex: 1;
-    overflow: auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.source-line-highlight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 24px;
+    background: rgba(59, 130, 246, 0.2);
+    border-left: 3px solid #3b82f6;
+    pointer-events: none;
+    z-index: 1;
+    display: none;
 }
 
 #source-textarea {

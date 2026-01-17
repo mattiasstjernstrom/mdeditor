@@ -68,6 +68,19 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.split('\n').length;
     };
 
+    const sourceLineHighlight = document.getElementById('source-line-highlight');
+    const lineHeight = 24; // Approximate line height in pixels
+
+    // Position the line highlight overlay in source textarea
+    const updateSourceLineHighlight = (lineNum) => {
+        if (sourceLineHighlight && sourceTextarea) {
+            const scrollTop = sourceTextarea.scrollTop;
+            const top = (lineNum - 1) * lineHeight - scrollTop;
+            sourceLineHighlight.style.top = `${Math.max(0, top)}px`;
+            sourceLineHighlight.style.display = top >= 0 ? 'block' : 'none';
+        }
+    };
+
     // When cursor is in SOURCE -> highlight corresponding element in WYSIWYG
     const highlightInWysiwyg = () => {
         // Remove previous highlights
@@ -83,7 +96,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let elementIndex = 0;
         for (let i = 0; i < lineNum; i++) {
             const line = lines[i] || '';
-            // Count non-empty lines as block elements
             if (line.trim().length > 0) {
                 elementIndex++;
             }
@@ -93,11 +105,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (elements[elementIndex - 1]) {
             elements[elementIndex - 1].classList.add('highlight-sync');
         }
+
+        // Hide source line highlight when editing source
+        if (sourceLineHighlight) sourceLineHighlight.style.display = 'none';
     };
 
-    // When cursor is in WYSIWYG -> show corresponding line number in source header
+    // When cursor is in WYSIWYG -> highlight corresponding line in source
     const highlightInSource = () => {
-        // Remove highlights from WYSIWYG (highlight should only show when editing source)
+        // Remove WYSIWYG highlights
         editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
 
         const selection = window.getSelection();
@@ -121,9 +136,28 @@ document.addEventListener('DOMContentLoaded', () => {
             const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
             const index = Array.from(elements).indexOf(foundElement);
 
-            if (lineIndicator && index >= 0) {
-                // Estimate line number based on element index
-                lineIndicator.textContent = `≈ Rad ${index + 1}`;
+            if (index >= 0) {
+                // Calculate estimated line in source
+                const lines = sourceTextarea.value.split('\n');
+                let targetLine = 0;
+                let elementCount = 0;
+
+                for (let i = 0; i < lines.length; i++) {
+                    if (lines[i].trim().length > 0) {
+                        if (elementCount === index) {
+                            targetLine = i + 1;
+                            break;
+                        }
+                        elementCount++;
+                    }
+                }
+
+                if (lineIndicator) {
+                    lineIndicator.textContent = `Rad ${targetLine || index + 1}`;
+                }
+
+                // Show line highlight overlay in source
+                updateSourceLineHighlight(targetLine || index + 1);
             }
         }
     };
