@@ -24,17 +24,19 @@
     -webkit-font-smoothing: antialiased;
 }
 
-body {
+html, body {
     font-family: var(--font-main);
     background-color: var(--bg-app);
     color: var(--text-primary);
-    overflow: hidden;
-    height: 100vh;
+    min-height: 100vh;
+    height: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .app-container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
 }
 
@@ -625,13 +627,15 @@ body {
     padding: 0 2rem 2rem 2rem;
     display: flex;
     justify-content: center;
+    background: var(--bg-app);
 }
 
 .editor-content {
     width: 100%;
     max-width: 750px; /* Optimal reading width */
     background: var(--bg-editor);
-    min-height: 100%; /* Fill remaining space visually */
+    min-height: auto;
+    height: auto;
     padding: 4rem;
     box-shadow: var(--shadow-md);
     border-radius: 1rem;
@@ -956,6 +960,90 @@ body {
     border-bottom-color: var(--accent);
     color: var(--accent-hover);
     border-radius: 4px;
+}
+
+/* GitHub-style Alerts/Callouts */
+.alert {
+    display: block;
+    margin: 1.5rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 0.5rem;
+    border-left: 4px solid;
+    overflow: visible;
+    min-height: fit-content;
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.alert-header i {
+    font-size: 1.1rem;
+}
+
+.alert-content p {
+    margin: 0;
+}
+
+.alert-note {
+    background: rgba(56, 139, 253, 0.1);
+    border-color: #388bfd;
+}
+.alert-note .alert-header {
+    color: #388bfd;
+}
+
+.alert-tip {
+    background: rgba(46, 160, 67, 0.1);
+    border-color: #2ea043;
+}
+.alert-tip .alert-header {
+    color: #2ea043;
+}
+
+.alert-important {
+    background: rgba(130, 80, 223, 0.1);
+    border-color: #8250df;
+}
+.alert-important .alert-header {
+    color: #8250df;
+}
+
+.alert-warning {
+    background: rgba(210, 153, 34, 0.1);
+    border-color: #d29922;
+}
+.alert-warning .alert-header {
+    color: #d29922;
+}
+
+.alert-caution {
+    background: rgba(248, 81, 73, 0.1);
+    border-color: #f85149;
+}
+.alert-caution .alert-header {
+    color: #f85149;
+}
+
+/* Horizontal Rule */
+.editor-content hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-color), transparent);
+    margin: 2rem 0;
+}
+
+/* Images */
+.editor-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 0.5rem;
+    box-shadow: var(--shadow-sm);
+    margin: 1rem 0;
 }
 
 /* Stats Bar */

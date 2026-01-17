@@ -45,6 +45,60 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="code-block-wrapper" data-lang="${lang || 'text'}"><div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">${displayLang}</span></div><pre><code class="language-${lang || 'text'}">${code}</code></pre></div>`;
     };
 
+    // GitHub-style alerts renderer
+    renderer.blockquote = (args) => {
+        // Handle both old string API and new object API
+        let text = '';
+        if (typeof args === 'string') {
+            text = args;
+        } else if (args && typeof args === 'object') {
+            text = args.text || args.raw || '';
+        }
+
+        // Check for alert syntax in raw text or HTML-wrapped text
+        const alertPatterns = [
+            /^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/im,
+            /^\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]/im
+        ];
+
+        let alertMatch = null;
+        for (const pattern of alertPatterns) {
+            alertMatch = text.match(pattern);
+            if (alertMatch) break;
+        }
+
+        if (alertMatch) {
+            const type = alertMatch[1].toLowerCase();
+            const icons = {
+                note: 'ph-info',
+                tip: 'ph-lightbulb',
+                important: 'ph-star',
+                warning: 'ph-warning',
+                caution: 'ph-warning-octagon'
+            };
+            const labels = {
+                note: 'Note',
+                tip: 'Tip',
+                important: 'Important',
+                warning: 'Warning',
+                caution: 'Caution'
+            };
+            // Remove the alert marker from content
+            let content = text
+                .replace(/^\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*\n?/im, '')
+                .replace(/^\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\/?>)?\s*/im, '<p>')
+                .trim();
+
+            // Wrap in paragraph if it's plain text
+            if (!content.startsWith('<')) {
+                content = `<p>${content}</p>`;
+            }
+
+            return `<div class="alert alert-${type}" data-alert-type="${type}"><div class="alert-header"><i class="ph ${icons[type]}"></i><span>${labels[type]}</span></div><div class="alert-content">${content}</div></div>`;
+        }
+        return `<blockquote>${text}</blockquote>`;
+    };
+
     marked.setOptions({
         renderer: renderer,
         gfm: true,
@@ -66,6 +120,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const code = codeNode ? codeNode.textContent : '';
             if (!code.trim()) return '';
             return '\n```' + lang + '\n' + code + '\n```\n';
+        }
+    });
+
+    // Custom Turndown rule for GitHub-style alerts
+    turndownService.addRule('alertBox', {
+        filter: (node) => node.nodeName === 'DIV' && node.classList.contains('alert'),
+        replacement: (content, node) => {
+            const type = node.getAttribute('data-alert-type') || 'note';
+            const contentEl = node.querySelector('.alert-content');
+            const text = contentEl ? turndownService.turndown(contentEl.innerHTML) : content;
+            return '\n> [!' + type.toUpperCase() + ']\n> ' + text.trim().replace(/\n/g, '\n> ') + '\n';
         }
     });
 
@@ -363,6 +428,8 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             const pre = getBlockParent('pre');
+            const alert = getBlockParent('div', 'alert');
+
             if (pre) {
                 const selection = window.getSelection();
                 const range = selection.getRangeAt(0);
@@ -398,6 +465,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     syncToSource();
                 }
+            } else if (alert) {
+                const selection = window.getSelection();
+                const range = selection.getRangeAt(0);
+
+                if (!e.shiftKey) {
+                    // Regular Enter: Break out of the alert
+                    e.preventDefault();
+                    const p = document.createElement('p');
+                    p.innerHTML = '<br>';
+                    alert.after(p);
+
+                    // Position cursor in the new paragraph
+                    const newRange = document.createRange();
+                    newRange.setStart(p, 0);
+                    newRange.collapse(true);
+                    selection.removeAllRanges();
+                    selection.addRange(newRange);
+
+                    syncToSource();
+                }
+                // Shift+Enter: Default behavior (new line inside)
             }
         }
     }, true); // Use capture phase to ensure we intercept it before browser splits tags
@@ -554,6 +642,27 @@ document.addEventListener('DOMContentLoaded', () => {
         insertTasklistBtn.addEventListener('click', () => {
             const taskMd = '\n- [ ] Uppgift 1\n- [ ] Uppgift 2\n';
             insertAtCursor(marked.parse(taskMd), taskMd);
+        });
+    }
+
+    // Insert Image
+    const insertImageBtn = document.getElementById('btn-insert-image');
+    if (insertImageBtn) {
+        insertImageBtn.addEventListener('click', () => {
+            const url = prompt('Ange bild-URL:');
+            if (url) {
+                const alt = prompt('Ange alt-text (beskrivning):', 'Bild') || 'Bild';
+                const imgMd = `\n![${alt}](${url})\n`;
+                insertAtCursor(`<img src="${url}" alt="${alt}">`, imgMd);
+            }
+        });
+    }
+
+    // Insert Horizontal Rule
+    const insertHrBtn = document.getElementById('btn-insert-hr');
+    if (insertHrBtn) {
+        insertHrBtn.addEventListener('click', () => {
+            insertAtCursor('<hr>', '\n---\n');
         });
     }
 
