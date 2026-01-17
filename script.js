@@ -2,10 +2,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const editor = document.getElementById('editor');
     const wordCountEl = document.getElementById('word-count');
     const readTimeEl = document.getElementById('read-time');
-    const viewMarkdownBtn = document.getElementById('view-markdown-btn');
-    const markdownModal = document.getElementById('markdown-modal');
-    const markdownInput = document.getElementById('markdown-input');
-    const applyMarkdownBtn = document.getElementById('apply-markdown');
     const toggleSplitViewBtn = document.getElementById('toggle-split-view');
     const sourceWrapper = document.getElementById('source-wrapper');
     const sourceTextarea = document.getElementById('source-textarea');
@@ -332,27 +328,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // View Markdown Modal
-    if (viewMarkdownBtn) {
-        viewMarkdownBtn.addEventListener('click', () => {
-            markdownInput.value = turndownService.turndown(editor.innerHTML);
-            markdownModal.classList.remove('hidden');
-        });
-    }
-
-    if (applyMarkdownBtn) {
-        applyMarkdownBtn.addEventListener('click', () => {
-            editor.innerHTML = marked.parse(markdownInput.value);
-            markdownModal.classList.add('hidden');
-            updateStats();
-            syncToSource();
-        });
-    }
 
     // Close modals
     document.querySelectorAll('.close-btn, .modal-backdrop').forEach(el => {
         el.addEventListener('click', () => {
-            markdownModal?.classList.add('hidden');
             commandPalette?.classList.add('hidden');
         });
     });

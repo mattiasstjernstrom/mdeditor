@@ -148,10 +148,6 @@
                     <button id="export-html" class="btn secondary" data-tooltip="Exportera HTML">
                         <i class="ph ph-download"></i>
                     </button>
-                    <button id="view-markdown-btn" class="btn secondary">
-                        <i class="ph ph-code"></i>
-                        <span>Källkod</span>
-                    </button>
                     <button class="btn primary" onclick="window.print()">
                         <i class="ph ph-printer"></i>
                         <span>PDF</span>
@@ -255,28 +251,6 @@
             </footer>
         </main>
 
-        <!-- Markdown View Modal -->
-        <div id="markdown-modal" class="modal hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>Markdown Källkod</h2>
-                    <button id="close-modal" class="close-btn"><i class="ph ph-x"></i></button>
-                </div>
-                <div class="modal-body">
-                    <textarea id="markdown-input" spellcheck="false"></textarea>
-                </div>
-                <div class="modal-footer" style="justify-content: space-between;">
-                    <span style="font-size: 0.8rem; color: #6B7280; display: flex; align-items: center; gap: 0.25rem;">
-                        <i class="ph ph-github-logo"></i> Stödjer GitHub Flavored Markdown (GFM)
-                    </span>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button id="apply-markdown" class="btn primary">Applicera</button>
-                        <button id="copy-markdown" class="btn secondary">Kopiera</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-backdrop"></div>
-        </div>
 
         <!-- Shortcuts Modal -->
         <div id="shortcuts-modal" class="modal hidden">
