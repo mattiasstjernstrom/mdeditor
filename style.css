@@ -483,14 +483,7 @@ body {
     transition: all 0.15s ease;
 }
 
-.line-indicator {
-    background: #3b82f6;
-    color: white;
-    padding: 0.15rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.7rem;
-    margin-left: 0.5rem;
-}
+
 
 #source-pre {
     flex: 1;

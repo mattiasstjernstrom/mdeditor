@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const outlineBtn = document.getElementById('outline-btn');
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
-    const lineIndicator = document.getElementById('line-indicator');
 
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
@@ -64,17 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => lastEditedBy = null, 100);
     };
 
-    // Get current line number in textarea
-    const getSourceLineNumber = () => {
-        const text = sourceTextarea.value.substring(0, sourceTextarea.selectionStart);
-        return text.split('\n').length;
-    };
-
-    const updateLineIndicator = () => {
-        if (lineIndicator) {
-            lineIndicator.textContent = `Rad ${getSourceLineNumber()}`;
-        }
-    };
 
     const toggleSplitView = () => {
         if (sourceWrapper) {
@@ -258,17 +246,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Source Textarea input - live sync
     sourceTextarea.addEventListener('input', () => {
         syncToEditor();
-        updateLineIndicator();
         updateButtonStates();
     });
 
-    // Update line indicator and button states on cursor move in source
+    // Update button states on cursor move in source
     sourceTextarea.addEventListener('click', () => {
-        updateLineIndicator();
         updateButtonStates();
     });
     sourceTextarea.addEventListener('keyup', () => {
-        updateLineIndicator();
         updateButtonStates();
     });
 
