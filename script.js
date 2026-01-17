@@ -126,6 +126,37 @@ document.addEventListener('DOMContentLoaded', () => {
         saveToLocalStorage();
     };
 
+    // Check if cursor is inside specific block type
+    const isInsideBlock = (tagName) => {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return false;
+        let node = selection.anchorNode;
+        while (node && node !== editor) {
+            if (node.nodeType === 1 && node.tagName.toLowerCase() === tagName.toLowerCase()) {
+                return true;
+            }
+            node = node.parentNode;
+        }
+        return false;
+    };
+
+    // Update active states on toolbar buttons
+    const updateButtonStates = () => {
+        document.querySelectorAll('[data-command]').forEach(btn => {
+            const command = btn.getAttribute('data-command');
+            const value = btn.getAttribute('data-value');
+            let isActive = false;
+
+            if (command === 'formatBlock') {
+                isActive = isInsideBlock(value);
+            } else {
+                isActive = document.queryCommandState(command);
+            }
+
+            btn.classList.toggle('active', isActive);
+        });
+    };
+
     // --- Event Listeners ---
 
     // WYSIWYG Editor input
@@ -147,6 +178,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update line indicator on cursor move in source
     sourceTextarea.addEventListener('click', updateLineIndicator);
     sourceTextarea.addEventListener('keyup', updateLineIndicator);
+
+    // Update toolbar button active states when cursor moves in WYSIWYG
+    editor.addEventListener('click', updateButtonStates);
+    editor.addEventListener('keyup', updateButtonStates);
+    document.addEventListener('selectionchange', () => {
+        if (document.activeElement === editor) {
+            updateButtonStates();
+        }
+    });
 
     // Split View Button
     if (toggleSplitViewBtn) {
