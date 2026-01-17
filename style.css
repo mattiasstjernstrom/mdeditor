@@ -8,7 +8,6 @@
     --border-color: #e2e8f0;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --pro-gold: #fbbf24;
     --font-main: 'Inter', sans-serif;
     --font-heading: 'Outfit', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
@@ -607,18 +606,6 @@ body {
     color: var(--text-primary);
 }
 
-.tool-btn.pro-feature::before {
-    content: '';
-    position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 6px;
-    height: 6px;
-    background-color: var(--pro-gold);
-    border-radius: 50%;
-    border: 1px solid white;
-    z-index: 10; /* Above tooltip */
-}
 
 /* Active State for Toolbar Buttons */
 .tool-btn.active {
@@ -690,21 +677,44 @@ body {
 /* Table Styling in Editor */
 .editor-content table {
     width: 100%;
-    border-collapse: collapse;
-    margin-bottom: 1.5em;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 2rem;
     font-size: 0.95em;
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
 }
 
 .editor-content th,
 .editor-content td {
-    border: 1px solid var(--border-color);
-    padding: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    padding: 0.875rem 1rem;
     text-align: left;
 }
 
+.editor-content th:last-child,
+.editor-content td:last-child {
+    border-right: none;
+}
+
+.editor-content tr:last-child td {
+    border-bottom: none;
+}
+
 .editor-content th {
-    background-color: var(--bg-app);
+    background-color: #f8fafc;
     font-weight: 600;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+}
+
+.editor-content tr:hover td {
+    background-color: #fbfcfd;
 }
 
 /* Checkbox/Task List Styling */
@@ -714,10 +724,72 @@ body {
     padding-left: 0;
 }
 
+.editor-content li[data-task] {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
 .editor-content li[data-task] > input[type="checkbox"] {
-    margin-right: 0.5rem;
-    margin-left: 0.25rem;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0.35rem;
+    margin-right: 0.75rem;
+    margin-top: 0.15rem;
     cursor: pointer;
+    position: relative;
+    transition: all 0.2s;
+    background: white;
+    flex-shrink: 0;
+}
+
+.editor-content li[data-task] > input[type="checkbox"]:checked {
+    background-color: var(--accent);
+    border-color: var(--accent);
+}
+
+.editor-content li[data-task] > input[type="checkbox"]:checked::after {
+    content: '\f26b'; /* phosphor check icon or simple tick */
+    font-family: "Phosphor";
+    position: absolute;
+    color: white;
+    font-size: 0.85rem;
+    left: 1.5px;
+    top: -1px;
+}
+
+/* Fallback tick if fonts don't load */
+.editor-content li[data-task] > input[type="checkbox"]:checked::after {
+    content: '✓';
+    font-family: inherit;
+    font-weight: bold;
+}
+
+.editor-content li[data-task] > input[type="checkbox"]:checked + span,
+.editor-content li[data-task] > input[type="checkbox"]:checked + p {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+/* Strikethrough Styling */
+.editor-content del,
+.editor-content s {
+    color: var(--text-secondary);
+    text-decoration-thickness: 1.5px;
+}
+
+/* Inline Code Styling */
+.editor-content code {
+    background-color: var(--bg-app);
+    color: var(--accent);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.375rem;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    border: 1px solid var(--border-color);
 }
 
 .editor-content a {

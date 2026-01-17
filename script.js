@@ -23,6 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const outlineContent = document.getElementById('outline-content');
     const linkBtn = document.getElementById('link-btn');
     const inlineCodeBtn = document.getElementById('inline-code-btn');
+    const insertTableBtn = document.getElementById('btn-insert-table');
+    const insertTasklistBtn = document.getElementById('btn-insert-tasklist');
+
+    // Configure Marked for GFM
+    marked.setOptions({
+        gfm: true,
+        breaks: true,
+        headerIds: true,
+        mangle: false
+    });
 
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
@@ -62,11 +72,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const html = marked.parse(sourceTextarea.value);
         if (editor.innerHTML !== html) {
             editor.innerHTML = html;
+            // Enable checkboxes for task lists
+            editor.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+                cb.removeAttribute('disabled');
+            });
             updateStats();
             updateOutline();
         }
         setTimeout(() => lastEditedBy = null, 100);
     };
+
+    // Task list checkbox interaction
+    editor.addEventListener('change', (e) => {
+        if (e.target.type === 'checkbox') {
+            // Update attribute so turndown sees it
+            if (e.target.checked) {
+                e.target.setAttribute('checked', '');
+            } else {
+                e.target.removeAttribute('checked');
+            }
+            syncToSource();
+            saveToLocalStorage();
+        }
+    });
 
 
     const toggleSplitView = () => {
@@ -306,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (lastFocusedElement === sourceTextarea) {
                 wrapSourceSelection('`', '`');
             } else {
-                // Inline code in WYSIWYG is tricky without custom logic, using a span or simple tag
                 const selection = window.getSelection();
                 if (!selection.isCollapsed) {
                     const range = selection.getRangeAt(0);
@@ -315,6 +342,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     range.insertNode(code);
                     syncToSource();
                 }
+            }
+        });
+    }
+
+    // Insert Table
+    if (insertTableBtn) {
+        insertTableBtn.addEventListener('click', () => {
+            const tableMd = '\n| Rubrik 1 | Rubrik 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n';
+            if (lastFocusedElement === sourceTextarea) {
+                const start = sourceTextarea.selectionStart;
+                const end = sourceTextarea.selectionEnd;
+                sourceTextarea.value = sourceTextarea.value.substring(0, start) + tableMd + sourceTextarea.value.substring(end);
+                syncToEditor();
+            } else {
+                editor.innerHTML += marked.parse(tableMd);
+                syncToSource();
+            }
+        });
+    }
+
+    // Insert Tasklist
+    if (insertTasklistBtn) {
+        insertTasklistBtn.addEventListener('click', () => {
+            const taskMd = '\n- [ ] Uppgift 1\n- [ ] Uppgift 2\n';
+            if (lastFocusedElement === sourceTextarea) {
+                const start = sourceTextarea.selectionStart;
+                const end = sourceTextarea.selectionEnd;
+                sourceTextarea.value = sourceTextarea.value.substring(0, start) + taskMd + sourceTextarea.value.substring(end);
+                syncToEditor();
+            } else {
+                editor.innerHTML += marked.parse(taskMd);
+                syncToSource();
             }
         });
     }
@@ -500,7 +559,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Init
     const saved = localStorage.getItem('md-flow-content');
-    if (saved) editor.innerHTML = saved;
+    if (saved) {
+        editor.innerHTML = saved;
+        editor.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            cb.removeAttribute('disabled');
+        });
+    }
     updateStats();
     if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: true });
 });
