@@ -68,32 +68,63 @@ document.addEventListener('DOMContentLoaded', () => {
         return text.split('\n').length;
     };
 
-    // Update line indicator when cursor moves in source textarea
-    const updateSourceCursor = () => {
-        const line = getSourceLineNumber();
+    // When cursor is in SOURCE -> highlight corresponding element in WYSIWYG
+    const highlightInWysiwyg = () => {
+        // Remove previous highlights
+        editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
+
+        const lineNum = getSourceLineNumber();
         if (lineIndicator) {
-            lineIndicator.textContent = `Rad ${line}`;
+            lineIndicator.textContent = `Rad ${lineNum}`;
+        }
+
+        // Find the element that corresponds to this line
+        const lines = sourceTextarea.value.split('\n');
+        let elementIndex = 0;
+        for (let i = 0; i < lineNum; i++) {
+            const line = lines[i] || '';
+            // Count non-empty lines as block elements
+            if (line.trim().length > 0) {
+                elementIndex++;
+            }
+        }
+
+        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
+        if (elements[elementIndex - 1]) {
+            elements[elementIndex - 1].classList.add('highlight-sync');
         }
     };
 
-    // Highlight current block in WYSIWYG when cursor is there
-    const highlightCurrentBlock = () => {
-        // Remove previous highlights
+    // When cursor is in WYSIWYG -> show corresponding line number in source header
+    const highlightInSource = () => {
+        // Remove highlights from WYSIWYG (highlight should only show when editing source)
         editor.querySelectorAll('.highlight-sync').forEach(el => el.classList.remove('highlight-sync'));
 
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
 
         let node = selection.anchorNode;
+        let foundElement = null;
+
         while (node && node !== editor) {
             if (node.nodeType === 1) {
                 const tagName = node.tagName.toLowerCase();
-                if (['p', 'h1', 'h2', 'h3', 'h4', 'li', 'blockquote', 'pre', 'table', 'ul', 'ol'].includes(tagName)) {
-                    node.classList.add('highlight-sync');
+                if (['p', 'h1', 'h2', 'h3', 'h4', 'li', 'blockquote', 'pre', 'ul', 'ol'].includes(tagName)) {
+                    foundElement = node;
                     break;
                 }
             }
             node = node.parentNode;
+        }
+
+        if (foundElement) {
+            const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
+            const index = Array.from(elements).indexOf(foundElement);
+
+            if (lineIndicator && index >= 0) {
+                // Estimate line number based on element index
+                lineIndicator.textContent = `≈ Rad ${index + 1}`;
+            }
         }
     };
 
@@ -157,16 +188,16 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => lastEditedBy = null, 100);
     });
 
-    // Track cursor in WYSIWYG -> highlight current block
-    editor.addEventListener('click', highlightCurrentBlock);
-    editor.addEventListener('keyup', highlightCurrentBlock);
+    // Track cursor in WYSIWYG -> update line indicator in source
+    editor.addEventListener('click', highlightInSource);
+    editor.addEventListener('keyup', highlightInSource);
 
     // Source Textarea input - live sync
     sourceTextarea.addEventListener('input', syncToEditor);
 
-    // Track cursor in source -> update line indicator
-    sourceTextarea.addEventListener('click', updateSourceCursor);
-    sourceTextarea.addEventListener('keyup', updateSourceCursor);
+    // Track cursor in source -> highlight element in WYSIWYG
+    sourceTextarea.addEventListener('click', highlightInWysiwyg);
+    sourceTextarea.addEventListener('keyup', highlightInWysiwyg);
 
     // Split View Button
     if (toggleSplitViewBtn) {
