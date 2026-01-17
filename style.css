@@ -674,6 +674,17 @@ body {
     padding-left: 1.5em;
 }
 
+/* Checklist specific: hide bullets for items with checkboxes */
+.editor-content ul:has(input[type="checkbox"]) {
+    padding-left: 0.25rem;
+    list-style: none;
+}
+
+.editor-content li:has(input[type="checkbox"]) {
+    list-style-type: none;
+    padding-left: 0;
+}
+
 /* Table Styling in Editor */
 .editor-content table {
     width: 100%;
@@ -718,60 +729,59 @@ body {
 }
 
 /* Checkbox/Task List Styling */
-.editor-content ul[data-type="task-list"],
-.editor-content li[data-task] {
+.editor-content ul:has(input[type="checkbox"]),
+.editor-content li:has(input[type="checkbox"]) {
     list-style: none;
     padding-left: 0;
 }
 
-.editor-content li[data-task] {
+.editor-content li:has(input[type="checkbox"]) {
     display: flex;
     align-items: flex-start;
     margin-bottom: 0.5rem;
 }
 
-.editor-content li[data-task] > input[type="checkbox"] {
+.editor-content li input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
-    width: 1.2rem;
-    height: 1.2rem;
-    border: 2px solid var(--border-color);
-    border-radius: 0.35rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2.5px solid var(--border-color);
+    border-radius: 0.4rem;
     margin-right: 0.75rem;
     margin-top: 0.15rem;
     cursor: pointer;
     position: relative;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     background: white;
     flex-shrink: 0;
 }
 
-.editor-content li[data-task] > input[type="checkbox"]:checked {
+.editor-content li input[type="checkbox"]:checked {
     background-color: var(--accent);
     border-color: var(--accent);
 }
 
-.editor-content li[data-task] > input[type="checkbox"]:checked::after {
-    content: '\f26b'; /* phosphor check icon or simple tick */
-    font-family: "Phosphor";
+.editor-content li input[type="checkbox"]:checked::after {
+    content: '✓';
     position: absolute;
     color: white;
-    font-size: 0.85rem;
-    left: 1.5px;
-    top: -1px;
+    font-size: 0.9rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: 800;
 }
 
-/* Fallback tick if fonts don't load */
-.editor-content li[data-task] > input[type="checkbox"]:checked::after {
-    content: '✓';
-    font-family: inherit;
-    font-weight: bold;
-}
-
-.editor-content li[data-task] > input[type="checkbox"]:checked + span,
-.editor-content li[data-task] > input[type="checkbox"]:checked + p {
-    text-decoration: line-through;
+.editor-content li input[type="checkbox"]:checked + span,
+.editor-content li input[type="checkbox"]:checked + p,
+.editor-content li:has(input[type="checkbox"]:checked) {
     color: var(--text-secondary);
+}
+
+.editor-content li:has(input[type="checkbox"]:checked) span,
+.editor-content li:has(input[type="checkbox"]:checked) p {
+     text-decoration: line-through;
 }
 
 /* Strikethrough Styling */
@@ -783,7 +793,7 @@ body {
 
 /* Inline Code Styling */
 .editor-content code {
-    background-color: var(--bg-app);
+    background-color: #f1f5f9;
     color: var(--accent);
     padding: 0.2rem 0.4rem;
     border-radius: 0.375rem;
@@ -792,14 +802,43 @@ body {
     border: 1px solid var(--border-color);
 }
 
+/* Code Block Styling */
+.editor-content pre {
+    background-color: #1e293b;
+    color: #e2e8f0;
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+    font-family: var(--font-mono);
+    font-size: 0.9em;
+    line-height: 1.6;
+    margin-bottom: 1.5em;
+    overflow-x: auto;
+    border: 1px solid #334155;
+}
+
+.editor-content pre code {
+    background-color: transparent;
+    color: inherit;
+    padding: 0;
+    border-radius: 0;
+    border: none;
+    font-size: inherit;
+}
+
 .editor-content a {
     color: var(--accent);
     text-decoration: none;
-    border-bottom: 1px solid transparent;
+    font-weight: 500;
+    border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+    padding: 0 2px;
+    transition: all 0.2s;
 }
 
 .editor-content a:hover {
+    background-color: rgba(99, 102, 241, 0.05);
     border-bottom-color: var(--accent);
+    color: var(--accent-hover);
+    border-radius: 4px;
 }
 
 /* Stats Bar */
