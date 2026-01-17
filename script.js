@@ -69,15 +69,29 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const sourceLineHighlight = document.getElementById('source-line-highlight');
-    const lineHeight = 24; // Approximate line height in pixels
+
+    // Get actual line height from textarea
+    const getLineHeight = () => {
+        const style = window.getComputedStyle(sourceTextarea);
+        return parseFloat(style.lineHeight) || 24;
+    };
+
+    // Get padding top from textarea
+    const getPaddingTop = () => {
+        const style = window.getComputedStyle(sourceTextarea);
+        return parseFloat(style.paddingTop) || 0;
+    };
 
     // Position the line highlight overlay in source textarea
     const updateSourceLineHighlight = (lineNum) => {
         if (sourceLineHighlight && sourceTextarea) {
+            const lineHeight = getLineHeight();
+            const paddingTop = getPaddingTop();
             const scrollTop = sourceTextarea.scrollTop;
-            const top = (lineNum - 1) * lineHeight - scrollTop;
-            sourceLineHighlight.style.top = `${Math.max(0, top)}px`;
-            sourceLineHighlight.style.display = top >= 0 ? 'block' : 'none';
+            const top = paddingTop + (lineNum - 1) * lineHeight - scrollTop;
+            sourceLineHighlight.style.top = `${top}px`;
+            sourceLineHighlight.style.height = `${lineHeight}px`;
+            sourceLineHighlight.style.display = top >= -lineHeight ? 'block' : 'none';
         }
     };
 
