@@ -22,6 +22,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
 
+    // Source editing elements
+    const sourceTextarea = document.getElementById('source-textarea');
+    const sourceView = document.getElementById('source-view');
+    const toggleSourceEditBtn = document.getElementById('toggle-source-edit');
+    const copySourceBtn = document.getElementById('copy-source');
+    let isSourceEditMode = false;
+
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
 
@@ -98,9 +105,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (sourceWrapper) {
             sourceWrapper.classList.toggle('hidden');
             toggleSplitViewBtn.classList.toggle('active');
+            if (!sourceWrapper.classList.contains('hidden')) {
+                updateSourceView();
+            }
+        }
+    };
+
+    const toggleSourceEditMode = () => {
+        isSourceEditMode = !isSourceEditMode;
+
+        if (isSourceEditMode) {
+            // Switch to edit mode
+            const markdown = turndownService.turndown(editor.innerHTML);
+            sourceTextarea.value = markdown;
+            sourceView.classList.add('hidden');
+            sourceTextarea.classList.remove('hidden');
+            sourceTextarea.focus();
+            toggleSourceEditBtn.innerHTML = '<i class="ph ph-eye"></i>';
+            toggleSourceEditBtn.setAttribute('data-tooltip', 'Förhandsvisa');
+        } else {
+            // Switch to view mode
+            sourceTextarea.classList.add('hidden');
+            sourceView.classList.remove('hidden');
+            toggleSourceEditBtn.innerHTML = '<i class="ph ph-pencil-simple"></i>';
+            toggleSourceEditBtn.setAttribute('data-tooltip', 'Redigera');
             updateSourceView();
         }
     };
+
+    const syncFromSource = () => {
+        if (isSourceEditMode && sourceTextarea.value) {
+            editor.innerHTML = marked.parse(sourceTextarea.value);
+            updateStats();
+            updateOutline();
+            saveToLocalStorage();
+        }
+    };
+
 
     const updateOutline = () => {
         if (!outlineSidebar || outlineSidebar.classList.contains('hidden')) return;
@@ -150,10 +191,36 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.addEventListener('click', highlightCursorLine);
     editor.addEventListener('keyup', highlightCursorLine);
 
-    // Split View Button (THIS WAS MISSING!)
+    // Split View Button
     if (toggleSplitViewBtn) {
         toggleSplitViewBtn.addEventListener('click', toggleSplitView);
     }
+
+    // Source Edit Toggle Button
+    if (toggleSourceEditBtn) {
+        toggleSourceEditBtn.addEventListener('click', toggleSourceEditMode);
+    }
+
+    // Source Textarea - sync changes to WYSIWYG with debounce
+    let sourceDebounce = null;
+    if (sourceTextarea) {
+        sourceTextarea.addEventListener('input', () => {
+            clearTimeout(sourceDebounce);
+            sourceDebounce = setTimeout(syncFromSource, 300);
+        });
+    }
+
+    // Copy Source Button
+    if (copySourceBtn) {
+        copySourceBtn.addEventListener('click', () => {
+            const markdown = turndownService.turndown(editor.innerHTML);
+            navigator.clipboard.writeText(markdown).then(() => {
+                copySourceBtn.innerHTML = '<i class="ph ph-check"></i>';
+                setTimeout(() => copySourceBtn.innerHTML = '<i class="ph ph-copy"></i>', 1500);
+            });
+        });
+    }
+
 
     // Outline Button
     if (outlineBtn) {

@@ -238,13 +238,20 @@
                 <!-- Markdown Source View (for Split View) -->
                 <div class="preview-wrapper hidden" id="source-wrapper">
                     <div class="source-header">
-                        <span>Markdown Source</span>
-                        <button id="copy-source" class="btn secondary icon-only small">
-                            <i class="ph ph-copy"></i>
-                        </button>
+                        <span>Markdown</span>
+                        <div class="source-actions">
+                            <button id="toggle-source-edit" class="btn secondary small" data-tooltip="Redigera">
+                                <i class="ph ph-pencil-simple"></i>
+                            </button>
+                            <button id="copy-source" class="btn secondary icon-only small" data-tooltip="Kopiera">
+                                <i class="ph ph-copy"></i>
+                            </button>
+                        </div>
                     </div>
-                    <pre id="source-pre" class="language-markdown"><code id="source-code" class="language-markdown"></code></pre>
-                    <textarea id="source-textarea" class="hidden" spellcheck="false"></textarea>
+                    <div id="source-view" class="source-content">
+                        <pre id="source-pre" class="language-markdown"><code id="source-code" class="language-markdown"></code></pre>
+                    </div>
+                    <textarea id="source-textarea" class="source-content hidden" spellcheck="false" placeholder="Skriv Markdown här..."></textarea>
                 </div>
             </div>
 
