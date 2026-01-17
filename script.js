@@ -52,11 +52,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const syncToEditor = () => {
         lastEditedBy = 'source';
         const html = marked.parse(sourceTextarea.value);
+
+        // Get current line to restore highlight after sync
+        const lineNum = getSourceLineNumber();
+
+        // Only update if content actually changed
         if (editor.innerHTML !== html) {
             editor.innerHTML = html;
             updateStats();
             updateOutline();
         }
+
+        // Immediately reapply highlight (prevents blinking)
+        const lines = sourceTextarea.value.split('\n');
+        let elementIndex = 0;
+        for (let i = 0; i < lineNum; i++) {
+            if ((lines[i] || '').trim().length > 0) elementIndex++;
+        }
+        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre');
+        if (elements[elementIndex - 1]) {
+            elements[elementIndex - 1].classList.add('highlight-sync');
+        }
+
         setTimeout(() => lastEditedBy = null, 100);
     };
 
