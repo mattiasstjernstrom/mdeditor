@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         syncToSource();
         updateOutline();
         saveToLocalStorage();
+        highlightInSource(); // Keep line indicator updated while typing
         setTimeout(() => lastEditedBy = null, 100);
     });
 
@@ -192,8 +193,11 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.addEventListener('click', highlightInSource);
     editor.addEventListener('keyup', highlightInSource);
 
-    // Source Textarea input - live sync
-    sourceTextarea.addEventListener('input', syncToEditor);
+    // Source Textarea input - live sync + keep highlight updated
+    sourceTextarea.addEventListener('input', () => {
+        syncToEditor();
+        highlightInWysiwyg(); // Keep highlight visible while typing
+    });
 
     // Track cursor in source -> highlight element in WYSIWYG
     sourceTextarea.addEventListener('click', highlightInWysiwyg);
