@@ -45,6 +45,27 @@ document.addEventListener('DOMContentLoaded', () => {
         return `<div class="code-block-wrapper" data-lang="${lang || 'text'}"><div class="code-block-header" contenteditable="false"><span class="code-lang-tag" title="Klicka för att ändra språk">${displayLang}</span></div><pre><code class="language-${lang || 'text'}">${code}</code></pre></div>`;
     };
 
+    // Custom heading renderer for {#custom-id} anchor syntax
+    renderer.heading = (args) => {
+        const text = typeof args === 'string' ? args : (args.text || '');
+        const level = typeof args === 'string' ? arguments[1] : (args.depth || 1);
+
+        // Check for {#custom-id} at the end of the heading
+        const anchorMatch = text.match(/\s*\{#([a-zA-Z0-9_-]+)\}\s*$/);
+        let id, cleanText;
+
+        if (anchorMatch) {
+            id = anchorMatch[1];
+            cleanText = text.replace(/\s*\{#[a-zA-Z0-9_-]+\}\s*$/, '');
+        } else {
+            // Auto-generate ID from text
+            id = text.toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s+/g, '-');
+            cleanText = text;
+        }
+
+        return `<h${level} id="${id}" data-custom-anchor="${anchorMatch ? 'true' : 'false'}">${cleanText}</h${level}>`;
+    };
+
     // GitHub-style alerts renderer
     renderer.blockquote = (args) => {
         // Handle both old string API and new object API
@@ -181,6 +202,17 @@ document.addEventListener('DOMContentLoaded', () => {
     turndownService.addRule('underline', {
         filter: (node) => node.nodeName === 'U' || node.nodeName === 'INS',
         replacement: (content) => `<ins>${content}</ins>`
+    });
+
+    // Custom Turndown rule for headings with custom anchors
+    turndownService.addRule('headingWithAnchor', {
+        filter: (node) => /^H[1-6]$/.test(node.nodeName) && node.getAttribute('data-custom-anchor') === 'true',
+        replacement: (content, node) => {
+            const level = parseInt(node.nodeName.charAt(1), 10);
+            const id = node.getAttribute('id') || '';
+            const hashes = '#'.repeat(level);
+            return `\n${hashes} ${content} {#${id}}\n`;
+        }
     });
 
     let lastEditedBy = null;
@@ -472,6 +504,29 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update toolbar button active states when cursor moves in WYSIWYG
     editor.addEventListener('click', updateButtonStates);
     editor.addEventListener('keyup', updateButtonStates);
+
+    // Alt+click (Windows/Linux) or Cmd+click (Mac) to follow links
+    editor.addEventListener('click', (e) => {
+        if (e.altKey || e.metaKey) {
+            const link = e.target.closest('a');
+            if (link && link.href) {
+                e.preventDefault();
+                window.open(link.href, '_blank');
+            }
+        }
+    });
+
+    // Change cursor to pointer when Alt/Cmd is held over links
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey || e.metaKey) {
+            editor.classList.add('link-clickable');
+        }
+    });
+    document.addEventListener('keyup', (e) => {
+        if (!e.altKey && !e.metaKey) {
+            editor.classList.remove('link-clickable');
+        }
+    });
 
     // Handle Enter key inside code blocks and other structures
     editor.addEventListener('keydown', (e) => {

@@ -764,6 +764,17 @@ html, body {
     border-radius: 0 0.5rem 0.5rem 0;
 }
 
+/* Clickable links when Alt/Cmd is held */
+.editor-content.link-clickable a {
+    cursor: pointer;
+}
+
+.editor-content.link-clickable a:hover {
+    text-decoration: underline;
+    background: rgba(99, 102, 241, 0.15);
+    border-radius: 2px;
+}
+
 .editor-content ul,
 .editor-content ol {
     margin-bottom: 1.5em;
