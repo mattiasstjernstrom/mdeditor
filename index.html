@@ -17,8 +17,23 @@
     <script src="https://unpkg.com/turndown/dist/turndown.js"></script>
     <script src="https://unpkg.com/turndown-plugin-gfm/dist/turndown-plugin-gfm.js"></script>
 
+    <!-- FileSaver for Exports -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
     <!-- Marked for Markdown -> HTML -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- KaTeX for Math -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"></script>
+
+    <!-- Mermaid for Diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.2.4/dist/mermaid.min.js"></script>
+
+    <!-- Prism.js for Syntax Highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
 
     <link rel="stylesheet" href="style.css?v=3">
     <style>
@@ -97,6 +112,10 @@
                     <i class="ph ph-keyboard"></i>
                     <span>Kortkommandon</span>
                 </button>
+                <button id="outline-btn" class="nav-item">
+                    <i class="ph ph-list-numbers"></i>
+                    <span>Outline</span>
+                </button>
             </nav>
 
             <div class="sidebar-footer">
@@ -123,13 +142,19 @@
                 </div>
 
                 <div class="actions">
+                    <button id="toggle-split-view" class="btn secondary" data-tooltip="Split View (Cmd+P)">
+                        <i class="ph ph-columns"></i>
+                    </button>
+                    <button id="export-html" class="btn secondary" data-tooltip="Exportera HTML">
+                        <i class="ph ph-download"></i>
+                    </button>
                     <button id="view-markdown-btn" class="btn secondary">
                         <i class="ph ph-code"></i>
-                        <span>Visa Markdown</span>
+                        <span>Källkod</span>
                     </button>
-                    <button class="btn primary">
-                        <i class="ph ph-share-fat"></i>
-                        <span>Dela</span>
+                    <button class="btn primary" onclick="window.print()">
+                        <i class="ph ph-printer"></i>
+                        <span>PDF</span>
                     </button>
                 </div>
             </header>
@@ -154,6 +179,12 @@
                     </button>
                     <button class="tool-btn" data-command="strikeThrough" data-tooltip="Genomstruken (GFM)">
                         <i class="ph ph-text-strikethrough"></i>
+                    </button>
+                    <button class="tool-btn" data-command="formatBlock" data-value="pre" data-tooltip="Kodblock">
+                        <i class="ph ph-code-block"></i>
+                    </button>
+                    <button class="tool-btn" id="inline-code-btn" data-tooltip="Inline Code">
+                        <i class="ph ph-code"></i>
                     </button>
                 </div>
                 <div class="divider"></div>
@@ -182,11 +213,38 @@
                 </div>
             </div>
 
-            <!-- WYSIWYG Editor Canvas -->
-            <div class="editor-wrapper">
-                <div id="editor" class="editor-content" contenteditable="true" spellcheck="false">
-                    <h2>Skriv rubrik här...</h2>
-                    <p>Börja skriva din fantastiska text här. Markera text för att formatera.</p>
+            <!-- Workspace Area (Editor + Preview) -->
+            <div class="workspace" id="workspace">
+                <!-- Outline / Navigator -->
+                <div id="outline-sidebar" class="outline-sidebar hidden">
+                    <div class="outline-header">
+                        <span>Outline</span>
+                        <button id="close-outline" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
+                    </div>
+                    <div id="outline-content" class="outline-list">
+                        <!-- TOC goes here -->
+                    </div>
+                </div>
+
+                <!-- WYSIWYG Editor Canvas -->
+                <div class="editor-wrapper" id="wysiwyg-wrapper">
+                    <div id="editor" class="editor-content" contenteditable="true" spellcheck="false">
+                        <h2>Välkommen till din nya editor</h2>
+                        <p>Börja skriva din fantastiska text här. Markera text för att formatera.</p>
+                        <p>Prova att använda <b>fetstil</b> eller <i>kursiv</i> text.</p>
+                    </div>
+                </div>
+
+                <!-- Markdown Source View (for Split View) -->
+                <div class="preview-wrapper hidden" id="source-wrapper">
+                    <div class="source-header">
+                        <span>Markdown Source</span>
+                        <button id="copy-source" class="btn secondary icon-only small">
+                            <i class="ph ph-copy"></i>
+                        </button>
+                    </div>
+                    <pre id="source-pre" class="language-markdown"><code id="source-code" class="language-markdown"></code></pre>
+                    <textarea id="source-textarea" class="hidden" spellcheck="false"></textarea>
                 </div>
             </div>
 
@@ -270,6 +328,34 @@
 
     </div>
 
-    <script src="script.js"></script>
-</body>
+        <!-- Command Palette -->
+        <div id="command-palette" class="modal hidden">
+            <div class="command-palette-content">
+                <div class="command-input-container">
+                    <i class="ph ph-magnifying-glass"></i>
+                    <input type="text" id="command-input" placeholder="Vad vill du göra? (t.ex. 'Exportera', 'Dark Mode'...)" autocomplete="off">
+                </div>
+                <div id="command-results" class="command-results">
+                    <!-- Results populated by JS -->
+                </div>
+            </div>
+            <div class="modal-backdrop"></div>
+        </div>
+
+        <!-- Find & Replace Bar -->
+        <div id="find-box" class="find-replace-bar hidden">
+            <div class="find-inputs">
+                <input type="text" id="find-input" placeholder="Sök...">
+                <input type="text" id="replace-input" placeholder="Ersätt med...">
+            </div>
+            <div class="find-actions">
+                <button id="find-next" class="btn secondary small" title="Nästa"><i class="ph ph-caret-down"></i></button>
+                <button id="replace-btn" class="btn secondary" title="Ersätt">Ersätt</button>
+                <button id="replace-all-btn" class="btn secondary" title="Ersätt alla">Alla</button>
+                <button id="close-find" class="btn secondary icon-only small"><i class="ph ph-x"></i></button>
+            </div>
+        </div>
+
+        <script src="script.js"></script>
+    </body>
 </html>
