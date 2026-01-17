@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyMarkdownBtn = document.getElementById('apply-markdown');
     const toggleSplitViewBtn = document.getElementById('toggle-split-view');
     const sourceWrapper = document.getElementById('source-wrapper');
-    const sourceCode = document.getElementById('source-code');
+    const sourceTextarea = document.getElementById('source-textarea');
+    const copySourceBtn = document.getElementById('copy-source');
     const exportHtmlBtn = document.getElementById('export-html');
 
     const commandPalette = document.getElementById('command-palette');
@@ -22,15 +23,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
 
-    // Source editing elements
-    const sourceTextarea = document.getElementById('source-textarea');
-    const sourceView = document.getElementById('source-view');
-    const toggleSourceEditBtn = document.getElementById('toggle-source-edit');
-    const copySourceBtn = document.getElementById('copy-source');
-    let isSourceEditMode = false;
-
     const turndownService = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' });
     turndownService.use(turndownPluginGfm.gfm);
+
+    // Track which side was last edited to prevent loops
+    let lastEditedBy = null;
 
     // --- Core Functions ---
     const updateStats = () => {
@@ -40,108 +37,39 @@ document.addEventListener('DOMContentLoaded', () => {
         readTimeEl.innerText = `Ca ${Math.ceil(words / 200)} min läsning`;
     };
 
-    const updateSourceView = () => {
+    // Sync WYSIWYG -> Source
+    const syncToSource = () => {
+        if (lastEditedBy === 'source') return;
         if (sourceWrapper && !sourceWrapper.classList.contains('hidden')) {
             const markdown = turndownService.turndown(editor.innerHTML);
-            const lines = markdown.split('\n');
-
-            // Create line-numbered HTML
-            const html = lines.map((line, i) => {
-                const lineNum = String(i + 1).padStart(3, ' ');
-                const escapedLine = line.replace(/</g, '&lt;').replace(/>/g, '&gt;') || ' ';
-                return `<span class="source-line" data-line="${i + 1}"><span class="line-number">${lineNum}</span>${escapedLine}</span>`;
-            }).join('\n');
-
-            sourceCode.innerHTML = html;
-            highlightCursorLine();
+            if (sourceTextarea.value !== markdown) {
+                sourceTextarea.value = markdown;
+            }
         }
     };
 
-    const highlightCursorLine = () => {
-        if (!sourceWrapper || sourceWrapper.classList.contains('hidden')) return;
-
-        // Get current selection in editor
-        const selection = window.getSelection();
-        if (!selection.rangeCount) return;
-
-        const range = selection.getRangeAt(0);
-        let node = range.startContainer;
-
-        // Find the block-level element the cursor is in
-        while (node && node !== editor) {
-            if (node.nodeType === 1) {
-                const tagName = node.tagName.toLowerCase();
-                if (['p', 'h1', 'h2', 'h3', 'h4', 'li', 'blockquote', 'pre', 'table'].includes(tagName)) {
-                    break;
-                }
-            }
-            node = node.parentNode;
+    // Sync Source -> WYSIWYG
+    const syncToEditor = () => {
+        lastEditedBy = 'source';
+        const html = marked.parse(sourceTextarea.value);
+        if (editor.innerHTML !== html) {
+            editor.innerHTML = html;
+            updateStats();
+            updateOutline();
         }
-
-        if (!node || node === editor) return;
-
-        // Find position of this element among siblings
-        const elements = editor.querySelectorAll('p, h1, h2, h3, h4, li, blockquote, pre, table, tr');
-        let lineIndex = 0;
-        for (let i = 0; i < elements.length; i++) {
-            if (elements[i] === node || elements[i].contains(node)) {
-                lineIndex = i;
-                break;
-            }
-        }
-
-        // Highlight corresponding line in source
-        const sourceLines = sourceCode.querySelectorAll('.source-line');
-        sourceLines.forEach(el => el.classList.remove('active'));
-
-        if (sourceLines[lineIndex]) {
-            sourceLines[lineIndex].classList.add('active');
-            sourceLines[lineIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+        setTimeout(() => lastEditedBy = null, 100);
     };
-
 
     const toggleSplitView = () => {
         if (sourceWrapper) {
             sourceWrapper.classList.toggle('hidden');
             toggleSplitViewBtn.classList.toggle('active');
             if (!sourceWrapper.classList.contains('hidden')) {
-                updateSourceView();
+                syncToSource();
+                sourceTextarea.focus();
             }
         }
     };
-
-    const toggleSourceEditMode = () => {
-        isSourceEditMode = !isSourceEditMode;
-
-        if (isSourceEditMode) {
-            // Switch to edit mode
-            const markdown = turndownService.turndown(editor.innerHTML);
-            sourceTextarea.value = markdown;
-            sourceView.classList.add('hidden');
-            sourceTextarea.classList.remove('hidden');
-            sourceTextarea.focus();
-            toggleSourceEditBtn.innerHTML = '<i class="ph ph-eye"></i>';
-            toggleSourceEditBtn.setAttribute('data-tooltip', 'Förhandsvisa');
-        } else {
-            // Switch to view mode
-            sourceTextarea.classList.add('hidden');
-            sourceView.classList.remove('hidden');
-            toggleSourceEditBtn.innerHTML = '<i class="ph ph-pencil-simple"></i>';
-            toggleSourceEditBtn.setAttribute('data-tooltip', 'Redigera');
-            updateSourceView();
-        }
-    };
-
-    const syncFromSource = () => {
-        if (isSourceEditMode && sourceTextarea.value) {
-            editor.innerHTML = marked.parse(sourceTextarea.value);
-            updateStats();
-            updateOutline();
-            saveToLocalStorage();
-        }
-    };
-
 
     const updateOutline = () => {
         if (!outlineSidebar || outlineSidebar.classList.contains('hidden')) return;
@@ -160,13 +88,13 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('md-flow-content', editor.innerHTML);
     };
 
-    // --- Commands & Tools ---
+    // --- Commands ---
     const commands = [
         { name: 'Toggle Split View', icon: 'ph-columns', action: toggleSplitView, shortcut: 'Cmd+J' },
         { name: 'Toggle Outline', icon: 'ph-list-numbers', action: () => outlineBtn?.click(), shortcut: 'Cmd+O' },
-        { name: 'Exportera HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click(), shortcut: 'Cmd+E' },
+        { name: 'Exportera HTML', icon: 'ph-download', action: () => exportHtmlBtn?.click() },
         { name: 'Finn & Ersätt', icon: 'ph-magnifying-glass', action: () => findBox?.classList.remove('hidden'), shortcut: 'Cmd+F' },
-        { name: 'Skriv ut (PDF)', icon: 'ph-printer', action: () => window.print(), shortcut: 'Cmd+P' }
+        { name: 'Skriv ut (PDF)', icon: 'ph-printer', action: () => window.print() }
     ];
 
     const findAndReplace = (all = false) => {
@@ -175,52 +103,39 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!find) return;
         const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), all ? 'g' : '');
         editor.innerHTML = editor.innerHTML.replace(regex, replace);
-        updateSourceView();
+        syncToSource();
         saveToLocalStorage();
     };
 
     // --- Event Listeners ---
+
+    // WYSIWYG Editor input
     editor.addEventListener('input', () => {
+        lastEditedBy = 'wysiwyg';
         updateStats();
-        updateSourceView();
+        syncToSource();
         updateOutline();
         saveToLocalStorage();
+        setTimeout(() => lastEditedBy = null, 100);
     });
 
-    // Track cursor position for split view sync
-    editor.addEventListener('click', highlightCursorLine);
-    editor.addEventListener('keyup', highlightCursorLine);
+    // Source Textarea input - live sync
+    sourceTextarea.addEventListener('input', syncToEditor);
 
     // Split View Button
     if (toggleSplitViewBtn) {
         toggleSplitViewBtn.addEventListener('click', toggleSplitView);
     }
 
-    // Source Edit Toggle Button
-    if (toggleSourceEditBtn) {
-        toggleSourceEditBtn.addEventListener('click', toggleSourceEditMode);
-    }
-
-    // Source Textarea - sync changes to WYSIWYG with debounce
-    let sourceDebounce = null;
-    if (sourceTextarea) {
-        sourceTextarea.addEventListener('input', () => {
-            clearTimeout(sourceDebounce);
-            sourceDebounce = setTimeout(syncFromSource, 300);
-        });
-    }
-
     // Copy Source Button
     if (copySourceBtn) {
         copySourceBtn.addEventListener('click', () => {
-            const markdown = turndownService.turndown(editor.innerHTML);
-            navigator.clipboard.writeText(markdown).then(() => {
+            navigator.clipboard.writeText(sourceTextarea.value).then(() => {
                 copySourceBtn.innerHTML = '<i class="ph ph-check"></i>';
                 setTimeout(() => copySourceBtn.innerHTML = '<i class="ph ph-copy"></i>', 1500);
             });
         });
     }
-
 
     // Outline Button
     if (outlineBtn) {
@@ -230,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Close Outline
     const closeOutlineBtn = document.getElementById('close-outline');
     if (closeOutlineBtn) {
         closeOutlineBtn.addEventListener('click', () => outlineSidebar.classList.add('hidden'));
@@ -268,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             editor.innerHTML = marked.parse(markdownInput.value);
             markdownModal.classList.add('hidden');
             updateStats();
-            updateSourceView();
+            syncToSource();
         });
     }
 
@@ -280,11 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Command Palette UI
+    // Command Palette
     const renderCommands = (filter = '') => {
         commandResults.innerHTML = '';
-        const filtered = commands.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()));
-        filtered.forEach(cmd => {
+        commands.filter(c => c.name.toLowerCase().includes(filter.toLowerCase())).forEach(cmd => {
             const div = document.createElement('div');
             div.className = 'command-item';
             div.innerHTML = `<span><i class="ph ${cmd.icon}"></i> ${cmd.name}</span><span class="shortcut">${cmd.shortcut || ''}</span>`;
@@ -296,44 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // Keyboard Shortcuts
     window.addEventListener('keydown', (e) => {
         const isCmd = e.metaKey || e.ctrlKey;
-
-        // Command Palette: Cmd+K
-        if (isCmd && e.key === 'k') {
-            e.preventDefault();
-            commandPalette.classList.remove('hidden');
-            commandInput.focus();
-            renderCommands();
-        }
-
-        // Find & Replace: Cmd+F
-        if (isCmd && e.key === 'f') {
-            e.preventDefault();
-            findBox.classList.remove('hidden');
-            findInput.focus();
-        }
-
-        // Outline: Cmd+O
-        if (isCmd && e.key === 'o') {
-            e.preventDefault();
-            outlineBtn?.click();
-        }
-
-        // Split View: Cmd+J
-        if (isCmd && e.key === 'j') {
-            e.preventDefault();
-            toggleSplitView();
-        }
-
-        // Escape closes modals
-        if (e.key === 'Escape') {
-            commandPalette.classList.add('hidden');
-            findBox.classList.add('hidden');
-        }
+        if (isCmd && e.key === 'k') { e.preventDefault(); commandPalette.classList.remove('hidden'); commandInput.focus(); renderCommands(); }
+        if (isCmd && e.key === 'f') { e.preventDefault(); findBox.classList.remove('hidden'); findInput.focus(); }
+        if (isCmd && e.key === 'o') { e.preventDefault(); outlineBtn?.click(); }
+        if (isCmd && e.key === 'j') { e.preventDefault(); toggleSplitView(); }
+        if (e.key === 'Escape') { commandPalette.classList.add('hidden'); findBox.classList.add('hidden'); }
     });
 
-    if (commandInput) {
-        commandInput.addEventListener('input', (e) => renderCommands(e.target.value));
-    }
+    if (commandInput) commandInput.addEventListener('input', (e) => renderCommands(e.target.value));
 
     // Toolbar Buttons
     document.querySelectorAll('[data-command]').forEach(btn => {
@@ -341,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             document.execCommand(btn.getAttribute('data-command'), false, btn.getAttribute('data-value'));
             editor.focus();
-            updateSourceView();
+            syncToSource();
         });
     });
 
@@ -349,6 +232,5 @@ document.addEventListener('DOMContentLoaded', () => {
     const saved = localStorage.getItem('md-flow-content');
     if (saved) editor.innerHTML = saved;
     updateStats();
-    if (typeof Prism !== 'undefined') Prism.highlightAll();
     if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: true });
 });
