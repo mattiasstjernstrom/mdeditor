@@ -1,12 +1,12 @@
-![mdbase Logo](logotype.png)
+![MDBase Logo](logotype.png)
 
-# Welcome to mdbase
+# Welcome to MDBase
 
 **Have you ever wanted a good Markdown editor? 📝✨**
 
 ---
 
-**mdbase** is a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**. I built this tool because I wanted a better, more streamlined way to craft and preview READMEs for GitHub. Whether you're documenting code, drafting a novel, or perfecting your profile, **mdbase** provides the focus you need to write with clarity.
+**MDBa.se ** is a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**. I built this tool because I wanted a better, more streamlined way to craft and preview READMEs for GitHub. Whether you're documenting code, drafting a novel, or perfecting your profile, **MDBase** provides the focus you need to write with clarity.
 
 ## 🎨 Formatting Playground
 
@@ -25,7 +25,7 @@ Stay organized with ease:
 2.  Break them down.
 3.  Execute.
 
-- [x] Launch mdbase
+- [x] Launch MDBase
 - [ ] Be amazed
 - [ ] Write the next best-seller using:
     - [x] Nested lists
@@ -68,4 +68,4 @@ Everything starts with a blank page. Create a new document to the left and let y
 *Happy writing!*
 Sincerely,
 
-_mdbase team_
+_MDBase team_

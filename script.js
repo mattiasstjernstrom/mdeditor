@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } catch (e) {
             console.warn('Could not load README.md (requires web server), using fallback.');
-            markdownContent = `![mdbase Logo](logotype.png)
+            markdownContent = `![MDBase | Logo](logotype.png)
 
 > [!WARNING]
 > Failed to load default document.`;
@@ -515,7 +515,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const welcomeDoc = {
             id: generateId(),
-            title: 'Welcome to mdbase',
+            title: 'Welcome to MDBase |',
             content: typeof marked !== 'undefined' ? marked.parse(markdownContent) : markdownContent,
             createdAt: Date.now(),
             updatedAt: Date.now()
