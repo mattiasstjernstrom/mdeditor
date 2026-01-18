@@ -117,7 +117,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 .replace(/^\s*<p>\s*\[!(NOTE|TIP|IMPORTANT|WARNING|CAUTION)\]\s*(<br\/?>)?\s*/im, '<p>')
                 .trim();
 
-            // Wrap in paragraph if it's plain text
+            // If content contains markdown formatting (**, *, etc), parse it
+            // Check if it's raw markdown that needs parsing
+            if (!content.startsWith('<') && (content.includes('**') || content.includes('*') || content.includes('`') || content.includes('_'))) {
+                content = marked.parseInline(content);
+            }
+
+            // Wrap in paragraph if it's plain text (no HTML tags)
             if (!content.startsWith('<')) {
                 content = `<p>${content}</p>`;
             }
