@@ -6,11 +6,11 @@
 
 ---
 
-**mdbase** isn't just another editor. It's a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**. Whether you're drafting a novel, documenting code, or just taking notes, we've got you covered. Or when you wan't to see how your Github profile looks like in Markdown, you can use _mdbase_!
+**mdbase** is a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**. I built this tool because I wanted a better, more streamlined way to craft and preview READMEs for GitHub. Whether you're documenting code, drafting a novel, or perfecting your profile, **mdbase** provides the focus you need to write with clarity.
 
 ## 🎨 Formatting Playground
 
-Don't just write—*express* yourself.
+Don't just write - *express* yourself.
 
 - **Bold** ideas stand out.
 - *Italic* nuances matter.
@@ -34,6 +34,15 @@ Stay organized with ease:
 ## ⚡ Power Features
 
 We support **GitHub Flavored Markdown** and more!
+
+- **Tables** for structured data.
+- **Blockquotes** for impactful citations.
+- **Footnotes** for extra context.
+
+## 🔮 Upcoming Features
+
+- **Mermaid diagrams** for visual storytelling.
+- **Mathematical formulas** via $\LaTeX$.
 
 ### 💻 Syntax Highlighting
 
