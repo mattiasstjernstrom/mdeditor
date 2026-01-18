@@ -107,6 +107,10 @@ html, body {
     width: 100vw;
 }
 
+.brand-text {
+    color: #0398FF;
+}
+
 /* Sidebar */
 /* Bento Dashboard Overlay */
 .dashboard-overlay {
