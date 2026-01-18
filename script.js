@@ -1448,13 +1448,22 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboardStats();
     };
 
-    if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
-    if (closeDashboardBtn) closeDashboardBtn.addEventListener('click', toggleSidebar);
+    if (menuToggle) menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
+    if (closeDashboardBtn) closeDashboardBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
 
     // Close dashboard when clicking outside the bento cards
     if (sidebar) {
         sidebar.addEventListener('click', (e) => {
-            if (e.target === sidebar || e.target.classList.contains('dashboard-content')) {
+            const isClickInsideCard = e.target.closest('.bento-card');
+            const isClickInsideHeader = e.target.closest('.dashboard-header');
+
+            if (!isClickInsideCard && !isClickInsideHeader) {
                 sidebar.classList.remove('active');
             }
         });

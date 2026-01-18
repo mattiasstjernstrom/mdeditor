@@ -2,7 +2,7 @@
 
 # Welcome to mdbase
 
-**Your new superpower for distraction-free writing.** 🚀
+**Have you ever wanted a good Markdown editor? 📝✨**
 
 ---
 
@@ -17,7 +17,7 @@ Don't just write - *express* yourself.
 - ~~Bad ideas~~ can be struck through.
 - `Code snippets` look right at home.
 
-### Lists & Tasks
+### 📋 Lists & Tasks
 
 Stay organized with ease:
 
@@ -62,7 +62,10 @@ const writeCode = (lines) => {
 
 Everything starts with a blank page. Create a new document to the left and let your creativity flow.
 
+> [!NOTE]
+> This sheet is also editable!
+
 *Happy writing!*
-Sincerely, 
+Sincerely,
 
 _mdbase team_

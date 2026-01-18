@@ -124,7 +124,7 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(15, 23, 42, 0.1);
+    background: rgba(15, 23, 42, 0.4); /* Slightly darker for better contrast */
     backdrop-filter: blur(32px);
     -webkit-backdrop-filter: blur(32px);
     z-index: 2000;
@@ -134,6 +134,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    overflow-y: auto; /* Enable scrolling for tall content */
+    -webkit-overflow-scrolling: touch;
 }
 
 .dashboard-overlay.active {
@@ -2227,9 +2229,27 @@ textarea#markdown-input {
         border-radius: 1rem;
     }
 
+    .dashboard-overlay {
+        align-items: flex-start; /* Ensure content starts at top to allow scrolling */
+        padding: 1.5rem 0;
+    }
+
     .dashboard-content {
         padding: 1rem;
-        width: 95%;
+        width: 92%;
+        margin: 0 auto;
+    }
+
+    #close-dashboard {
+        width: 48px;
+        height: 48px;
+        font-size: 1.5rem;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+
+    [data-theme="dark"] #close-dashboard {
+        background: rgba(255, 255, 255, 0.05);
     }
 
     /* Workspace split view on mobile */
