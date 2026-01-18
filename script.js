@@ -181,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Custom text renderer for emoji shortcodes and color previews
-    renderer.text = function(token) {
+    renderer.text = function (token) {
         const text = typeof token === 'string' ? token : (token.text || '');
 
         // Handle nested inline tokens (fixes bold/italic in lists)
@@ -479,7 +479,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 // If title is still empty/generic and content is empty, keep it generic or empty
                 if (editor.innerText.trim() === '') {
-                     title = 'Untitled document';
+                    title = 'Untitled document';
                 }
 
                 documents[docIndex].title = title;
@@ -499,14 +499,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const createWelcomeDocument = async (keepOpen = false) => {
         let markdownContent;
         try {
-            const response = await fetch('welcome.md');
+            const response = await fetch('README.md');
             if (response.ok) {
                 markdownContent = await response.text();
             } else {
-                throw new Error('Failed to load welcome.md');
+                throw new Error('Failed to load README.md');
             }
         } catch (e) {
-            console.warn('Could not load welcome.md (requires web server), using fallback.');
+            console.warn('Could not load README.md (requires web server), using fallback.');
             markdownContent = `![mdbase Logo](logotype.png)
 
 > [!WARNING]
@@ -633,10 +633,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const switchDocument = (id, keepOpen = false) => {
         // Save current before switching
         if (currentDocId) {
-             const docIndex = documents.findIndex(d => d.id === currentDocId);
-             if (docIndex !== -1) {
-                 documents[docIndex].content = editor.innerHTML;
-             }
+            const docIndex = documents.findIndex(d => d.id === currentDocId);
+            if (docIndex !== -1) {
+                documents[docIndex].content = editor.innerHTML;
+            }
         }
 
         currentDocId = id;
@@ -644,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (widthDoc) {
             editor.innerHTML = widthDoc.content;
             syncToSource();
-             // Reset undo stack for new document
+            // Reset undo stack for new document
             if (typeof undoStack !== 'undefined') {
                 undoStack.length = 0;
                 undoStack.push(widthDoc.content);

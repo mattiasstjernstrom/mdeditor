@@ -91,7 +91,8 @@
     -webkit-font-smoothing: antialiased;
 }
 
-html, body {
+html,
+body {
     font-family: var(--font-main);
     background-color: var(--bg-app);
     color: var(--text-primary);
@@ -208,11 +209,13 @@ html, body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 2rem;
-    height: 48px; /* Fixed height for header to ensure stable alignment */
+    height: 48px;
+    /* Fixed height for header to ensure stable alignment */
 }
 
 .docs-card h3 {
-    margin: 0; /* Clear all margins for proper centering */
+    margin: 0;
+    /* Clear all margins for proper centering */
     line-height: 1;
 }
 
@@ -220,8 +223,10 @@ html, body {
     position: relative;
     background: var(--accent-light);
     color: var(--accent);
-    padding: 0 1.5rem; /* Adjusted padding */
-    height: 40px; /* Specific height for better vertical alignment alongside text */
+    padding: 0 1.5rem;
+    /* Adjusted padding */
+    height: 40px;
+    /* Specific height for better vertical alignment alongside text */
     border-radius: 1rem;
     font-weight: 600;
     font-size: 0.9rem;
@@ -239,7 +244,8 @@ html, body {
 
 [data-theme="dark"] #new-doc-btn-dashboard {
     background: rgba(129, 140, 248, 0.1);
-    color: #a5b4fc; /* Slightly brighter for dark mode legibility */
+    color: #a5b4fc;
+    /* Slightly brighter for dark mode legibility */
     border-color: rgba(129, 140, 248, 0.4);
 }
 
@@ -255,9 +261,17 @@ html, body {
     color: #ffffff;
 }
 
-.nav-card { grid-column: span 1; }
-.stats-card { grid-column: span 1; }
-.user-card { grid-column: span 1; }
+.nav-card {
+    grid-column: span 1;
+}
+
+.stats-card {
+    grid-column: span 1;
+}
+
+.user-card {
+    grid-column: span 1;
+}
 
 .nav-stack {
     display: flex;
@@ -326,6 +340,40 @@ html, body {
     color: #10b981;
 }
 
+/* Dashboard Disclaimer */
+.dashboard-disclaimer {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+    padding: 1rem 1.25rem;
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+}
+
+.dashboard-disclaimer i {
+    font-size: 1.25rem;
+    color: #f59e0b;
+    flex-shrink: 0;
+}
+
+.dashboard-disclaimer p {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.dashboard-disclaimer strong {
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .dashboard-disclaimer {
+    background: rgba(251, 191, 36, 0.08);
+    border-color: rgba(251, 191, 36, 0.2);
+}
+
 /* Reusing bits of old sidebar styles */
 .brand {
     display: flex;
@@ -337,7 +385,10 @@ html, body {
     color: var(--text-primary);
 }
 
-.brand i { color: var(--accent); font-size: 2rem; }
+.brand i {
+    color: var(--accent);
+    font-size: 2rem;
+}
 
 .nav-item {
     display: flex;
@@ -585,8 +636,10 @@ html, body {
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: visible; /* Allow tooltips to show */
-    width: 100%; /* Ensure full width on mobile */
+    overflow: visible;
+    /* Allow tooltips to show */
+    width: 100%;
+    /* Ensure full width on mobile */
 }
 
 /* Toolbar Container - Centered floating bar */
@@ -596,16 +649,20 @@ html, body {
     z-index: 100;
     display: flex;
     justify-content: center;
-    padding: 2.5rem 1rem 1rem 1rem; /* Extra top padding for tooltips */
-    pointer-events: none; /* Allow scrolling through the container */
+    padding: 2.5rem 1rem 1rem 1rem;
+    /* Extra top padding for tooltips */
+    pointer-events: none;
+    /* Allow scrolling through the container */
 }
 
 .toolbar-container .toolbar {
-    pointer-events: auto; /* But toolbar itself is clickable */
+    pointer-events: auto;
+    /* But toolbar itself is clickable */
 }
 
 .mobile-only {
-    display: none !important; /* Force hidden by default */
+    display: none !important;
+    /* Force hidden by default */
 }
 
 /* Mobile Source Toggle Button (prominent markdown view button) */
@@ -627,8 +684,9 @@ html, body {
     min-width: 100px;
 }
 
-.doc-title:hover, .doc-title:focus {
-    background: rgba(0,0,0,0.03);
+.doc-title:hover,
+.doc-title:focus {
+    background: rgba(0, 0, 0, 0.03);
 }
 
 .save-status {
@@ -696,7 +754,8 @@ html, body {
     transition: background 0.2s;
 }
 
-.command-item:hover, .command-item.selected {
+.command-item:hover,
+.command-item.selected {
     background: #3b82f6;
     color: white;
 }
@@ -801,9 +860,20 @@ html, body {
     color: var(--text-primary);
 }
 
-.outline-item.h1 { font-weight: 500; padding-left: 0.25rem; }
-.outline-item.h2 { padding-left: 1rem; }
-.outline-item.h3 { padding-left: 2rem; font-size: 0.8rem; }
+.outline-item.h1 {
+    font-weight: 500;
+    padding-left: 0.25rem;
+}
+
+.outline-item.h2 {
+    padding-left: 1rem;
+}
+
+.outline-item.h3 {
+    padding-left: 2rem;
+    font-size: 0.8rem;
+}
+
 .btn {
     display: flex;
     align-items: center;
@@ -859,7 +929,8 @@ html, body {
     position: relative;
 }
 
-.editor-wrapper, .preview-wrapper {
+.editor-wrapper,
+.preview-wrapper {
     flex: 1;
     overflow-y: auto;
     height: 100%;
@@ -867,7 +938,8 @@ html, body {
 }
 
 .preview-wrapper {
-    background: #1e1e1e; /* Dark theme for code */
+    background: #1e1e1e;
+    /* Dark theme for code */
     border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -992,9 +1064,11 @@ html, body {
 .editor-wrapper {
     padding: 2rem;
 }
+
 .toolbar {
     display: grid;
-    grid-template-columns: 1fr auto 1fr; /* Skapar tre kolumner där yttersta tar lika mycket plats */
+    grid-template-columns: 1fr auto 1fr;
+    /* Skapar tre kolumner där yttersta tar lika mycket plats */
     align-items: center;
     width: calc(100% - 2rem);
     pointer-events: none;
@@ -1022,16 +1096,19 @@ html, body {
 }
 
 .toolbar-segment:first-child {
-    justify-self: start; /* Pusselbiten längst till vänster */
+    justify-self: start;
+    /* Pusselbiten längst till vänster */
 }
 
 .toolbar-segment.center {
-    justify-self: center; /* Pusselbiten exakt i mitten */
+    justify-self: center;
+    /* Pusselbiten exakt i mitten */
     padding: 0.5rem 1.25rem;
 }
 
 .toolbar-segment:last-child {
-    justify-self: end; /* Pusselbiten längst till höger */
+    justify-self: end;
+    /* Pusselbiten längst till höger */
 }
 
 .toolbar-segment:hover {
@@ -1104,7 +1181,8 @@ html, body {
     box-shadow: var(--shadow-md);
     min-width: 140px;
     z-index: 1000;
-    overflow: visible; /* Changed from hidden to allow bridge */
+    overflow: visible;
+    /* Changed from hidden to allow bridge */
 }
 
 /* Invisible bridge to prevent closing on gap */
@@ -1157,6 +1235,12 @@ html, body {
     margin: 0.25rem 0;
 }
 
+/* Export dropdown opens to the left to avoid overflow */
+#export-dropdown .dropdown-menu {
+    left: auto;
+    right: 0;
+}
+
 /* Emoji Grid Dropdown */
 .emoji-grid {
     display: grid;
@@ -1197,7 +1281,8 @@ html, body {
 
 .editor-content {
     width: 100%;
-    max-width: 750px; /* Optimal reading width */
+    max-width: 750px;
+    /* Optimal reading width */
     background: var(--bg-editor);
     min-height: auto;
     height: auto;
@@ -1264,11 +1349,13 @@ html, body {
 .editor-content ol ol {
     margin-bottom: 0;
     margin-top: 0.75em;
-    padding-left: 1.5em; /* Added indentation for nested lists */
+    padding-left: 1.5em;
+    /* Added indentation for nested lists */
 }
 
 .editor-content li {
-    margin-bottom: 0.5em; /* More breathing room */
+    margin-bottom: 0.5em;
+    /* More breathing room */
 }
 
 /* Remove bottom margin from last item to keep spacing tight with next element */
@@ -1347,8 +1434,8 @@ html, body {
     transition: background-color 0.2s ease;
 }
 
-.editor-content li.task-list-item > ul,
-.editor-content li.task-list-item > ol {
+.editor-content li.task-list-item>ul,
+.editor-content li.task-list-item>ol {
     flex-basis: 100%;
     width: 100%;
     margin-top: 0.5rem;
@@ -1397,13 +1484,13 @@ html, body {
 }
 
 /* Checked state - ANY checked task item gets strikethrough */
-.editor-content li.task-list-item.checked > .task-text {
+.editor-content li.task-list-item.checked>.task-text {
     color: var(--text-secondary);
     text-decoration: line-through;
 }
 
 /* Unchecked items - explicit reset to prevent inheritance issues */
-.editor-content li.task-list-item:not(.checked) > .task-text {
+.editor-content li.task-list-item:not(.checked)>.task-text {
     color: inherit;
     text-decoration: none;
 }
@@ -1665,6 +1752,7 @@ html, body {
     background: rgba(56, 139, 253, 0.1);
     border-color: #388bfd;
 }
+
 .alert-note .alert-header {
     color: #388bfd;
 }
@@ -1673,6 +1761,7 @@ html, body {
     background: rgba(46, 160, 67, 0.1);
     border-color: #2ea043;
 }
+
 .alert-tip .alert-header {
     color: #2ea043;
 }
@@ -1681,6 +1770,7 @@ html, body {
     background: rgba(130, 80, 223, 0.1);
     border-color: #8250df;
 }
+
 .alert-important .alert-header {
     color: #8250df;
 }
@@ -1689,6 +1779,7 @@ html, body {
     background: rgba(210, 153, 34, 0.1);
     border-color: #d29922;
 }
+
 .alert-warning .alert-header {
     color: #d29922;
 }
@@ -1697,6 +1788,7 @@ html, body {
     background: rgba(248, 81, 73, 0.1);
     border-color: #f85149;
 }
+
 .alert-caution .alert-header {
     color: #f85149;
 }
@@ -1744,7 +1836,7 @@ html, body {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 999;
     backdrop-filter: blur(2px);
 }
@@ -1760,7 +1852,8 @@ html, body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 2000; /* Higher than sidebar (1000) */
+    z-index: 2000;
+    /* Higher than sidebar (1000) */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1836,7 +1929,7 @@ kbd {
     background: white;
     border: 1px solid #ccc;
     border-radius: 0.25rem;
-    box-shadow: 0 1px 0 rgba(0,0,0,0.2), 0 0 0 2px #fff inset;
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2), 0 0 0 2px #fff inset;
     color: #333;
     display: inline-block;
     font-family: var(--font-mono);
@@ -1877,20 +1970,24 @@ kbd {
 }
 
 .modal-body {
-    padding: 0; /* Remove padding to let editor fill */
+    padding: 0;
+    /* Remove padding to let editor fill */
     background: #1e1e1e;
     color: #d4d4d4;
     font-family: var(--font-mono);
-    flex: 1; /* Expand to fill */
+    flex: 1;
+    /* Expand to fill */
     display: flex;
 }
 
 #markdown-modal .modal-body {
-    height: 60vh; /* Fixed height for editor area */
+    height: 60vh;
+    /* Fixed height for editor area */
 }
 
 .shortcuts-content .modal-body {
-    background: white; /* Reset for shortcuts */
+    background: white;
+    /* Reset for shortcuts */
     color: var(--text-primary);
     padding: 1.5rem;
 }
@@ -1902,7 +1999,8 @@ textarea#markdown-input {
     color: inherit;
     font-family: inherit;
     border: none;
-    resize: vertical; /* Allow resizing */
+    resize: vertical;
+    /* Allow resizing */
     padding: 1.5rem;
     font-size: 0.9rem;
     line-height: 1.6;
@@ -1963,7 +2061,8 @@ textarea#markdown-input {
     }
 
     .actions span {
-        display: none; /* Hide button text, show only icons */
+        display: none;
+        /* Hide button text, show only icons */
     }
 
     /* Mobile Toolbar Layout */
@@ -2124,7 +2223,7 @@ textarea#markdown-input {
         box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
     }
 
-    .preview-wrapper:not(.hidden) ~ .editor-wrapper {
+    .preview-wrapper:not(.hidden)~.editor-wrapper {
         height: 50vh;
         overflow-y: auto;
     }
@@ -2172,11 +2271,21 @@ textarea#markdown-input {
         display: none;
     }
 }
+
 @keyframes checkbox-pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.1); }
-    100% { transform: scale(1); }
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+
+    100% {
+        transform: scale(1);
+    }
 }
+
 /* Tooltips */
 [data-tooltip] {
     position: relative;
@@ -2190,13 +2299,15 @@ textarea#markdown-input {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.2s, transform 0.2s;
-    z-index: 1000; /* Higher z-index to appear above everything */
+    z-index: 1000;
+    /* Higher z-index to appear above everything */
 }
 
 /* Tooltip Text */
 [data-tooltip]::after {
     content: attr(data-tooltip);
-    background: #111827; /* Dark gray/black */
+    background: #111827;
+    /* Dark gray/black */
     color: white;
     font-size: 0.75rem;
     padding: 0.5rem 0.75rem;
@@ -2217,7 +2328,8 @@ textarea#markdown-input {
     border-right: 6px solid transparent;
     border-top: 6px solid #111827;
     bottom: 100%;
-    margin-bottom: 4px; /* Connects with text bubble */
+    margin-bottom: 4px;
+    /* Connects with text bubble */
 }
 
 /* Hover State */
@@ -2231,9 +2343,24 @@ textarea#markdown-input {
 /* (Currently handled by text content, but we could add specific styling if needed) */
 
 @media print {
-    .sidebar, .toolbar, .top-bar, .stats-bar, .source-header, .editor-header, .new-doc-btn, .nav-menu, .tool-btn-dropdown,
-    #sidebar, #menu-toggle, #export-dropdown, .actions, #outline-sidebar, #source-wrapper,
-    .dropdown-menu, .sidebar-overlay {
+
+    .sidebar,
+    .toolbar,
+    .top-bar,
+    .stats-bar,
+    .source-header,
+    .editor-header,
+    .new-doc-btn,
+    .nav-menu,
+    .tool-btn-dropdown,
+    #sidebar,
+    #menu-toggle,
+    #export-dropdown,
+    .actions,
+    #outline-sidebar,
+    #source-wrapper,
+    .dropdown-menu,
+    .sidebar-overlay {
         display: none !important;
     }
 
@@ -2274,7 +2401,8 @@ textarea#markdown-input {
     }
 
     /* Ensure text is black for printing */
-    .editor-content, .editor-content * {
+    .editor-content,
+    .editor-content * {
         color: black !important;
     }
 
