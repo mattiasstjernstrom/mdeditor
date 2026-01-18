@@ -306,33 +306,44 @@
                 <div class="modal-body">
                     <div class="shortcuts-grid">
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Heading 1</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd></div>
+                            <span class="shortcut-desc">Split View</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>J</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Heading 2</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>2</kbd></div>
+                            <span class="shortcut-desc">Outline</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>O</kbd></div>
                         </div>
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Bulleted List</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>8</kbd></div>
-                        </div>
-                        <div class="shortcut-item">
-                            <span class="shortcut-desc">Numbered List</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd></div>
+                            <span class="shortcut-desc">Find & Replace</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>F</kbd></div>
                         </div>
                         <div class="shortcut-item">
                             <span class="shortcut-desc">Bold</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>B</kbd></div>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>B</kbd></div>
                         </div>
                         <div class="shortcut-item">
                             <span class="shortcut-desc">Italic</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>I</kbd></div>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>I</kbd></div>
                         </div>
-
                         <div class="shortcut-item">
-                            <span class="shortcut-desc">Show this menu</span>
-                            <div class="keys"><kbd>Ctrl</kbd> + <kbd>H</kbd></div>
+                            <span class="shortcut-desc">Heading 1</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>Alt</kbd> + <kbd>1</kbd></div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-desc">Heading 2</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>Alt</kbd> + <kbd>2</kbd></div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-desc">Bulleted List</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>Shift</kbd> + <kbd>8</kbd></div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-desc">Numbered List</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>Shift</kbd> + <kbd>7</kbd></div>
+                        </div>
+                        <div class="shortcut-item">
+                            <span class="shortcut-desc">Show Shortcuts</span>
+                            <div class="keys"><kbd class="mod-key">⌘</kbd> + <kbd>H</kbd></div>
                         </div>
                     </div>
                 </div>
@@ -385,6 +396,7 @@
                 <input type="text" id="replace-input" placeholder="Replace with...">
             </div>
             <div class="find-actions">
+                <button id="find-prev" class="btn secondary small" title="Previous"><i class="ph ph-caret-up"></i></button>
                 <button id="find-next" class="btn secondary small" title="Next"><i class="ph ph-caret-down"></i></button>
                 <button id="replace-btn" class="btn secondary" title="Replace">Replace</button>
                 <button id="replace-all-btn" class="btn secondary" title="Replace All">All</button>
@@ -392,6 +404,6 @@
             </div>
         </div>
 
-        <script src="script.js?v=6"></script>
+        <script src="script.js?v=10"></script>
     </body>
 </html>

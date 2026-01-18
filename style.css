@@ -1372,7 +1372,7 @@ html, body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 100;
+    z-index: 2000; /* Higher than sidebar (1000) */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1727,4 +1727,17 @@ textarea#markdown-input {
     ::-webkit-scrollbar {
         display: none;
     }
+}
+
+/* Find & Replace Highlighting */
+.find-highlight {
+    background-color: #fef08a;
+    border-radius: 2px;
+    padding: 0 1px;
+}
+
+.find-highlight-current {
+    background-color: #fb923c;
+    color: white;
+    box-shadow: 0 0 0 2px #fb923c;
 }

@@ -1,4 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Detect OS and update modifier key labels
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 || navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+    if (!isMac) {
+        document.querySelectorAll('.mod-key').forEach(el => {
+            el.textContent = 'Ctrl';
+        });
+    }
     const editor = document.getElementById('editor');
     const wordCountEl = document.getElementById('word-count');
     const readTimeEl = document.getElementById('read-time');
@@ -634,7 +641,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cmd/Ctrl + O: Toggle Outline
         if (key === 'o') {
+            console.log('Cmd+O detected, toggling outline');
             e.preventDefault();
+            e.stopPropagation();
             outlineBtn?.click();
             return;
         }
@@ -736,15 +745,141 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, true); // Use capture phase to intercept before contenteditable
 
-    const findAndReplace = (all = false) => {
-        const find = findInput.value;
-        const replace = replaceInput.value;
-        if (!find) return;
-        const regex = new RegExp(find.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), all ? 'g' : '');
-        editor.innerHTML = editor.innerHTML.replace(regex, replace);
+    // Find functionality - custom highlighting
+    let currentMatchIndex = -1;
+    let matches = [];
+    const HIGHLIGHT_CLASS = 'find-highlight';
+    const CURRENT_HIGHLIGHT_CLASS = 'find-highlight-current';
+
+    const clearHighlights = () => {
+        document.querySelectorAll('.' + HIGHLIGHT_CLASS).forEach(el => {
+            const parent = el.parentNode;
+            parent.replaceChild(document.createTextNode(el.textContent), el);
+            parent.normalize();
+        });
+        matches = [];
+        currentMatchIndex = -1;
+    };
+
+    const highlightMatches = (searchText) => {
+        clearHighlights();
+        if (!searchText) return;
+
+        const searchLower = searchText.toLowerCase();
+        const treeWalker = document.createTreeWalker(editor, NodeFilter.SHOW_TEXT, null, false);
+
+        const textNodes = [];
+        while (treeWalker.nextNode()) {
+            textNodes.push(treeWalker.currentNode);
+        }
+
+        textNodes.forEach(node => {
+            const text = node.textContent;
+            const textLower = text.toLowerCase();
+            let lastIndex = 0;
+            let index;
+            const fragments = [];
+
+            while ((index = textLower.indexOf(searchLower, lastIndex)) !== -1) {
+                if (index > lastIndex) {
+                    fragments.push(document.createTextNode(text.substring(lastIndex, index)));
+                }
+                const span = document.createElement('span');
+                span.className = HIGHLIGHT_CLASS;
+                span.textContent = text.substring(index, index + searchText.length);
+                fragments.push(span);
+                matches.push(span);
+                lastIndex = index + searchText.length;
+            }
+
+            if (lastIndex < text.length) {
+                fragments.push(document.createTextNode(text.substring(lastIndex)));
+            }
+
+            if (fragments.length > 0 && lastIndex > 0) {
+                const parent = node.parentNode;
+                fragments.forEach(frag => parent.insertBefore(frag, node));
+                parent.removeChild(node);
+            }
+        });
+
+        if (matches.length > 0) {
+            currentMatchIndex = 0;
+            updateCurrentHighlight();
+        }
+    };
+
+    const updateCurrentHighlight = () => {
+        document.querySelectorAll('.' + CURRENT_HIGHLIGHT_CLASS).forEach(el => {
+            el.classList.remove(CURRENT_HIGHLIGHT_CLASS);
+        });
+        if (matches.length > 0 && currentMatchIndex >= 0) {
+            matches[currentMatchIndex].classList.add(CURRENT_HIGHLIGHT_CLASS);
+            matches[currentMatchIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    };
+
+    const findNext = () => {
+        const searchText = findInput.value;
+        if (!searchText) return;
+        if (matches.length === 0) {
+            highlightMatches(searchText);
+        } else {
+            currentMatchIndex = (currentMatchIndex + 1) % matches.length;
+            updateCurrentHighlight();
+        }
+    };
+
+    const findPrevious = () => {
+        const searchText = findInput.value;
+        if (!searchText) return;
+        if (matches.length === 0) {
+            highlightMatches(searchText);
+        } else {
+            currentMatchIndex = (currentMatchIndex - 1 + matches.length) % matches.length;
+            updateCurrentHighlight();
+        }
+    };
+
+    const replaceOne = () => {
+        const searchText = findInput.value;
+        const replaceText = replaceInput.value;
+        if (!searchText || matches.length === 0) {
+            highlightMatches(searchText);
+            return;
+        }
+        const currentMatch = matches[currentMatchIndex];
+        if (currentMatch) {
+            currentMatch.textContent = replaceText;
+            currentMatch.classList.remove(HIGHLIGHT_CLASS, CURRENT_HIGHLIGHT_CLASS);
+            matches.splice(currentMatchIndex, 1);
+            if (matches.length > 0) {
+                currentMatchIndex = currentMatchIndex % matches.length;
+                updateCurrentHighlight();
+            }
+            syncToSource();
+            saveToLocalStorage();
+        }
+    };
+
+    const replaceAll = () => {
+        const searchText = findInput.value;
+        const replaceText = replaceInput.value;
+        if (!searchText) return;
+        if (matches.length === 0) highlightMatches(searchText);
+        matches.forEach(match => {
+            match.textContent = replaceText;
+            match.classList.remove(HIGHLIGHT_CLASS, CURRENT_HIGHLIGHT_CLASS);
+        });
+        matches = [];
+        currentMatchIndex = -1;
         syncToSource();
         saveToLocalStorage();
     };
+
+    if (findInput) {
+        findInput.addEventListener('input', () => highlightMatches(findInput.value));
+    }
 
     // Check if cursor is inside specific block type and return the node
     const getBlockParent = (tagName, className = null) => {
@@ -1141,6 +1276,31 @@ document.addEventListener('DOMContentLoaded', () => {
         toggleSplitViewBtn.addEventListener('click', toggleSplitView);
     }
 
+    // Shortcuts Modal
+    const shortcutsBtn = document.getElementById('shortcuts-btn');
+    const shortcutsModal = document.getElementById('shortcuts-modal');
+    const closeShortcutsModal = document.getElementById('close-shortcuts-modal');
+
+    if (shortcutsBtn && shortcutsModal) {
+        shortcutsBtn.addEventListener('click', () => {
+            shortcutsModal.classList.remove('hidden');
+        });
+    }
+    if (closeShortcutsModal && shortcutsModal) {
+        closeShortcutsModal.addEventListener('click', () => {
+            shortcutsModal.classList.add('hidden');
+        });
+    }
+    // Close on backdrop click
+    if (shortcutsModal) {
+        const backdrop = shortcutsModal.querySelector('.modal-backdrop');
+        if (backdrop) {
+            backdrop.addEventListener('click', () => {
+                shortcutsModal.classList.add('hidden');
+            });
+        }
+    }
+
     // Sidebar Toggle
     const toggleSidebar = () => {
         sidebar.classList.toggle('active');
@@ -1382,15 +1542,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Find & Replace
+    const findPrevBtn = document.getElementById('find-prev');
     const findNextBtn = document.getElementById('find-next');
     const replaceBtnEl = document.getElementById('replace-btn');
     const replaceAllBtn = document.getElementById('replace-all-btn');
     const closeFindBtn = document.getElementById('close-find');
 
-    if (findNextBtn) findNextBtn.onclick = () => findAndReplace(false);
-    if (replaceBtnEl) replaceBtnEl.onclick = () => findAndReplace(false);
-    if (replaceAllBtn) replaceAllBtn.onclick = () => findAndReplace(true);
-    if (closeFindBtn) closeFindBtn.onclick = () => findBox.classList.add('hidden');
+    if (findPrevBtn) findPrevBtn.onclick = () => findPrevious();
+    if (findNextBtn) findNextBtn.onclick = () => findNext();
+    if (replaceBtnEl) replaceBtnEl.onclick = () => replaceOne();
+    if (replaceAllBtn) replaceAllBtn.onclick = () => replaceAll();
+    if (closeFindBtn) closeFindBtn.onclick = () => {
+        findBox.classList.add('hidden');
+        clearHighlights();
+    };
+
+    // Also find on Enter key in find input
+    if (findInput) {
+        findInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                if (e.shiftKey) {
+                    findPrevious();
+                } else {
+                    findNext();
+                }
+            }
+        });
+    }
 
     // Export HTML
     // Export Handlers
