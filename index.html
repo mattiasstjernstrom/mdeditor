@@ -88,43 +88,68 @@
 <body>
 
     <div class="app-container">
-        <!-- Sidebar / Navigation -->
-        <aside class="sidebar">
-            <div class="brand">
-                <i class="ph-fill ph-pen-nib"></i>
-                <span>mdbase</span>
-            </div>
-
-            <nav class="nav-menu">
-                <div class="nav-section-header">
-                    <span>Documents</span>
-                    <button id="new-doc-btn" class="btn secondary icon-only small" data-tooltip="New document">
-                        <i class="ph ph-plus"></i>
-                    </button>
+        <!-- Bento Dashboard Overlay -->
+        <div id="sidebar" class="dashboard-overlay">
+            <div class="dashboard-content">
+                <div class="dashboard-header">
+                    <div class="brand">
+                        <i class="ph-fill ph-pen-nib"></i>
+                        <span>mdbase</span>
+                    </div>
+                    <button id="close-dashboard" class="btn secondary icon-only"><i class="ph ph-x"></i></button>
                 </div>
-                <div id="doc-list" class="doc-list">
-                    <!-- Documents will be rendered here -->
-                </div>
-                <div class="nav-divider"></div>
-                <button id="shortcuts-btn" class="nav-item">
-                    <i class="ph ph-keyboard"></i>
-                    <span>Shortcuts</span>
-                </button>
-                <button id="outline-btn" class="nav-item">
-                    <i class="ph ph-list-numbers"></i>
-                    <span>Outline</span>
-                </button>
-            </nav>
 
-            <div class="sidebar-footer">
-                <div class="user-profile">
-                    <div class="avatar">G</div>
-                    <div class="user-info">
-                        <span class="name">Guest</span>
+                <div class="bento-grid">
+                    <!-- Documents Card -->
+                    <div class="bento-card docs-card">
+                        <div class="card-header">
+                            <h3><i class="ph ph-files"></i> My Documents</h3>
+                            <button id="new-doc-btn-dashboard" class="btn primary small"><i class="ph ph-plus"></i> New</button>
+                        </div>
+                        <div id="doc-list" class="doc-list">
+                            <!-- Documents will be rendered here -->
+                        </div>
+                    </div>
+
+                    <!-- Quick Navigation Card -->
+                    <div class="bento-card nav-card">
+                        <h3><i class="ph ph-compass"></i> Navigation</h3>
+                        <div class="nav-stack">
+                            <button id="shortcuts-btn" class="nav-item">
+                                <i class="ph ph-keyboard"></i>
+                                <span>Shortcuts</span>
+                            </button>
+                            <button id="outline-btn" class="nav-item">
+                                <i class="ph ph-list-numbers"></i>
+                                <span>Outline</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Stats Card -->
+                    <div class="bento-card stats-card">
+                        <h3><i class="ph ph-chart-bar"></i> Overview</h3>
+                        <div class="stats-overview">
+                            <div class="stat-item">
+                                <span class="stat-value" id="total-docs-count">0</span>
+                                <span class="stat-label">Document(s)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- User Card -->
+                    <div class="bento-card user-card">
+                        <div class="user-profile">
+                            <div class="avatar">G</div>
+                            <div class="user-info">
+                                <span class="name">Guest</span>
+                                <span class="status">Online</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </aside>
+        </div>
 
         <!-- Main Content Area -->
         <main class="editor-area">
@@ -305,7 +330,7 @@
             </footer>
         </main>
 
-        <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
 
         <!-- Shortcuts Modal -->
         <div id="shortcuts-modal" class="modal hidden">

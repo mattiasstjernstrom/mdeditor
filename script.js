@@ -22,9 +22,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const findInput = document.getElementById('find-input');
     const replaceInput = document.getElementById('replace-input');
 
-    const sidebar = document.querySelector('.sidebar');
+    const sidebar = document.getElementById('sidebar'); // Now the Dashboard Overlay
     const menuToggle = document.getElementById('menu-toggle');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const closeDashboardBtn = document.getElementById('close-dashboard');
     const outlineBtn = document.getElementById('outline-btn');
     const outlineSidebar = document.getElementById('outline-sidebar');
     const outlineContent = document.getElementById('outline-content');
@@ -446,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const docListEl = document.getElementById('doc-list');
     const newDocBtn = document.getElementById('new-doc-btn');
+    const newDocBtnDashboard = document.getElementById('new-doc-btn-dashboard');
 
     // Generate UUID-like ID
     const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -642,6 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 redoStack.length = 0;
             }
         }
+        if (sidebar) sidebar.classList.remove('active');
         saveToLocalStorage();
     };
 
@@ -675,6 +677,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (newDocBtn) newDocBtn.onclick = createNewDocument;
+    if (newDocBtnDashboard) newDocBtnDashboard.onclick = createNewDocument;
 
     // Load initial docs
     // Call this at the end of DOMContentLoaded or init
@@ -1379,14 +1382,21 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Sidebar Toggle
+    // Sidebar/Dashboard Toggle
     const toggleSidebar = () => {
-        sidebar.classList.toggle('active');
-        sidebarOverlay.classList.toggle('active');
+        if (sidebar) sidebar.classList.toggle('active');
+        updateDashboardStats();
     };
 
     if (menuToggle) menuToggle.addEventListener('click', toggleSidebar);
-    if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+    if (closeDashboardBtn) closeDashboardBtn.addEventListener('click', toggleSidebar);
+
+    const updateDashboardStats = () => {
+        const totalDocsCount = document.getElementById('total-docs-count');
+        if (totalDocsCount && documents) {
+            totalDocsCount.textContent = documents.length;
+        }
+    };
 
 
 
@@ -1847,8 +1857,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isCmd && e.key === 'o') { e.preventDefault(); outlineBtn?.click(); }
         // Split View
         if (isCmd && e.key === 'j') { e.preventDefault(); toggleSplitView(); }
-        // Escape
-        if (e.key === 'Escape') { commandPalette.classList.add('hidden'); findBox.classList.add('hidden'); }
+        // Escape - Close all overlays
+        if (e.key === 'Escape') {
+            commandPalette?.classList.add('hidden');
+            findBox?.classList.add('hidden');
+            if (sidebar) sidebar.classList.remove('active');
+            const scModal = document.getElementById('shortcuts-modal');
+            if (scModal) scModal.classList.add('hidden');
+
+            // Close any open dropdowns
+            document.querySelectorAll('.tool-btn-dropdown.open').forEach(d => d.classList.remove('open'));
+            document.querySelectorAll('.dropdown-menu').forEach(d => {
+                if (window.getComputedStyle(d).display !== 'none') {
+                    d.style.display = 'none';
+                }
+            });
+        }
 
         // Formatting Shortcuts
         if (isCmd && e.key === 'b') {
