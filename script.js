@@ -452,31 +452,33 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const createWelcomeDocument = () => {
+        const markdownContent = `![mdbase Logo](logotype.png)
+
+# Welcome to mdbase
+
+Your new distraction-free writing space.
+
+## 🚀 Get Started
+
+mdbase is designed to help you focus on your writing. Here are some things you can do:
+
+*   **Write freely** – Use Markdown shortcuts or the toolbar
+*   **Format** – Select text to see options or use syntax like \`**bold**\` or \\*\\*bold\\*\\*
+*   **Structure** – Use headings (\\#) to create an automatic Outline
+
+## ✨ Features
+
+*   ✅ **Auto-save** – Everything is saved locally in your browser
+*   ✅ **Multi-document** – Manage multiple drafts at once
+*   ✅ **HTML Export** – Download your work as HTML
+
+> [!NOTE]
+> Start writing here or create a new document in the menu/sidebar to start a blank sheet.`;
+
         const welcomeDoc = {
             id: generateId(),
             title: 'Welcome to mdbase',
-            content: `
-                <div style="text-align: center; margin-bottom: 2rem;">
-                    <i class="ph-fill ph-pen-nib" style="font-size: 4rem; color: var(--accent);"></i>
-                    <h1 style="margin-top: 1rem;">Welcome to mdbase</h1>
-                    <p style="color: var(--text-secondary); font-size: 1.2rem;">Your new distraction-free writing space.</p>
-                </div>
-                <hr>
-                <h2>Get Started</h2>
-                <p>mdbase is designed to help you focus on your writing. Here are some things you can do:</p>
-                <ul>
-                    <li><strong>Write freely:</strong> Use Markdown or the toolbar.</li>
-                    <li><strong>Format:</strong> Select text to see options.</li>
-                    <li><strong>Structure:</strong> Use headings to create an automatic Outline.</li>
-                </ul>
-                <h2>Features</h2>
-                <ul>
-                    <li>✅ <strong>Auto-save:</strong> Everything is saved locally in your browser.</li>
-                    <li>✅ <strong>Multi-document:</strong> Manage multiple drafts at once.</li>
-                    <li>✅ <strong>HTML Export:</strong> Download your work as HTML.</li>
-                </ul>
-                <p><em>Start writing here or create a new document in the menu/sidebar to start a blank sheet.</em></p>
-            `,
+            content: typeof marked !== 'undefined' ? marked.parse(markdownContent) : markdownContent,
             createdAt: Date.now(),
             updatedAt: Date.now()
         };
