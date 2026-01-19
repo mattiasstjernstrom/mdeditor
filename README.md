@@ -6,7 +6,7 @@
 
 ---
 
-**MDBase** (or actually it is _MDBase_) is a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**.
+**MDBa.se** (or actually it is _MDBase_) is a clean canvas for your thoughts, powered by the web's most versatile format: **Markdown**.
 
 We built this tool because We wanted a better, more streamlined way to craft and preview READMEs for GitHub. Whether you're documenting code, drafting a novel, or perfecting your profile, **MDBase** provides the focus you need to write with clarity.
 
