@@ -1535,7 +1535,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Insert Table
     if (insertTableBtn) {
         insertTableBtn.addEventListener('click', () => {
-            const tableMd = '\n| Rubrik 1 | Rubrik 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n';
+            const tableMd = '\n| Heading 1 | Heading 2 |\n| --- | --- |\n| Cell 1 | Cell 2 |\n';
             insertAtCursor(marked.parse(tableMd), tableMd);
         });
     }
@@ -1697,7 +1697,68 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Quote/Alert Dropdown
+    // Generic Dropdown Toggle with Mobile Support
+    const isMobileView = () => window.innerWidth <= 768;
+
+    const positionMobileDropdown = (dropdown) => {
+        const menu = dropdown.querySelector('.dropdown-menu');
+        if (!menu) return;
+
+        const btn = dropdown.querySelector('.tool-btn');
+        const rect = btn.getBoundingClientRect();
+
+        // Move menu to body for mobile to avoid clipping
+        if (!menu.dataset.movedToBody) {
+            document.body.appendChild(menu);
+            menu.dataset.movedToBody = 'true';
+            menu.dataset.originalParent = dropdown.id || 'quote-dropdown';
+        }
+
+        // Position it below the button
+        menu.style.position = 'fixed';
+        menu.style.top = (rect.bottom + 8) + 'px';
+        menu.style.left = Math.max(10, rect.left - 50) + 'px';
+        menu.style.display = 'block';
+        menu.style.zIndex = '9999';
+    };
+
+    const closeMobileDropdowns = () => {
+        document.querySelectorAll('.dropdown-menu[data-moved-to-body]').forEach(menu => {
+            menu.style.display = 'none';
+        });
+        document.querySelectorAll('.tool-btn-dropdown.open').forEach(d => d.classList.remove('open'));
+    };
+
+    document.querySelectorAll('.tool-btn-dropdown').forEach(dropdown => {
+        const btn = dropdown.querySelector('.tool-btn');
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+
+                // Close other open dropdowns first
+                document.querySelectorAll('.tool-btn-dropdown.open').forEach(openD => {
+                    if (openD !== dropdown) openD.classList.remove('open');
+                });
+                closeMobileDropdowns();
+
+                if (dropdown.classList.contains('open')) {
+                    dropdown.classList.remove('open');
+                } else {
+                    dropdown.classList.add('open');
+                    if (isMobileView()) {
+                        positionMobileDropdown(dropdown);
+                    }
+                }
+            });
+        }
+    });
+
+    // Close dropdowns when clicking outside
+    window.addEventListener('click', () => {
+        closeMobileDropdowns();
+    });
+
+    // Quote/Alert Dropdown items
     const quoteDropdown = document.getElementById('quote-dropdown');
     if (quoteDropdown) {
         const dropdownItems = quoteDropdown.querySelectorAll('.dropdown-item');
@@ -2138,6 +2199,35 @@ document.addEventListener('DOMContentLoaded', () => {
         editor.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.removeAttribute('disabled');
         });
+    }
+    // Toolbar scroll fade logic for mobile
+    const toolbarCenter = document.querySelector('.toolbar-segment.center');
+    if (toolbarCenter) {
+        const updateToolbarFades = () => {
+            const scrollLeft = toolbarCenter.scrollLeft;
+            const scrollWidth = toolbarCenter.scrollWidth;
+            const clientWidth = toolbarCenter.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+
+            // Show left fade if we've scrolled a bit
+            if (scrollLeft > 10) {
+                toolbarCenter.classList.add('show-fade-left');
+            } else {
+                toolbarCenter.classList.remove('show-fade-left');
+            }
+
+            // Show right fade if there's more to scroll
+            if (maxScroll > 0 && scrollLeft < maxScroll - 10) {
+                toolbarCenter.classList.add('show-fade-right');
+            } else {
+                toolbarCenter.classList.remove('show-fade-right');
+            }
+        };
+
+        toolbarCenter.addEventListener('scroll', updateToolbarFades);
+        window.addEventListener('resize', updateToolbarFades);
+        // Run once on load
+        setTimeout(updateToolbarFades, 100);
     }
     updateStats();
     if (typeof mermaid !== 'undefined') mermaid.initialize({ startOnLoad: true });

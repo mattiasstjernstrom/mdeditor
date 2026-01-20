@@ -657,12 +657,13 @@ body {
     justify-content: center;
     padding: 2.5rem 1rem 1rem 1rem;
     /* Allow scrolling through the container */
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Use top instead of transform to avoid creating a stacking context that clips fixed dropdowns */
+    transition: top 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 768px) {
     .toolbar-container.nav-hidden {
-        transform: translateY(-62px);
+        top: -70px;
     }
 
     .toolbar-container.nav-hidden .toolbar-segment:first-child,
@@ -1209,9 +1210,25 @@ body {
     border-radius: 0.5rem;
     box-shadow: var(--shadow-md);
     min-width: 140px;
-    z-index: 1000;
+    z-index: 1001;
     overflow: visible;
-    /* Changed from hidden to allow bridge */
+}
+
+@media (max-width: 768px) {
+    /* On mobile, JS moves dropdown to body - hide in original location */
+    .toolbar-segment .tool-btn-dropdown .dropdown-menu {
+        display: none;
+    }
+
+    /* Style for menu when moved to body */
+    body > .dropdown-menu {
+        background: var(--bg-editor);
+        border: 1px solid var(--border-color);
+        border-radius: 0.75rem;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        min-width: 160px;
+        padding: 0.25rem 0;
+    }
 }
 
 /* Invisible bridge to prevent closing on gap */
@@ -2122,13 +2139,44 @@ textarea#markdown-input {
     .toolbar-segment.center {
         order: 3;
         flex-basis: 100%;
-        padding: 0.5rem;
+        padding: 0.5rem 0.25rem;
+        display: flex;
+        flex-wrap: nowrap; /* Force single row */
+        justify-content: flex-start;
         overflow-x: auto;
-        overflow-y: hidden;
+        overflow-y: visible; /* Allow dropdowns to pop up */
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
-        max-width: 100%;
+        position: relative;
     }
+
+    /* Use pseudo-elements for fades to avoid mask-image clipping fixed children */
+    .toolbar-segment.center::before,
+    .toolbar-segment.center::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 30px;
+        z-index: 5;
+        pointer-events: none;
+        transition: opacity 0.3s;
+        opacity: 0;
+    }
+
+    .toolbar-segment.center::before {
+        left: 0;
+        background: linear-gradient(to right, var(--bg-editor), transparent);
+    }
+
+    .toolbar-segment.center::after {
+        right: 0;
+        background: linear-gradient(to left, var(--bg-editor), transparent);
+    }
+
+    /* These variables are toggled via JS */
+    .toolbar-segment.center.show-fade-left::before { opacity: 1; }
+    .toolbar-segment.center.show-fade-right::after { opacity: 1; }
 
     .toolbar-segment.center::-webkit-scrollbar {
         display: none;
