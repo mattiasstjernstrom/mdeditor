@@ -2275,6 +2275,79 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // Import File Handler
+    const importFileBtn = document.getElementById('import-file');
+    if (importFileBtn) {
+        importFileBtn.onclick = () => {
+            // Create a hidden file input
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = '.md,.markdown,.txt,.html';
+            fileInput.style.display = 'none';
+
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const content = event.target.result;
+                    let htmlContent = '';
+
+                    // Determine file type and process accordingly
+                    const fileName = file.name.toLowerCase();
+
+                    if (fileName.endsWith('.md') || fileName.endsWith('.markdown') || fileName.endsWith('.txt')) {
+                        // Process as markdown
+                        const processedMarkdown = processFootnotes(content);
+                        htmlContent = marked.parse(processedMarkdown);
+                    } else if (fileName.endsWith('.html')) {
+                        // Use HTML content directly (or extract body if it's a full HTML document)
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = content;
+                        const bodyContent = tempDiv.querySelector('body');
+                        htmlContent = bodyContent ? bodyContent.innerHTML : content;
+                    } else {
+                        // Default: treat as plain text and wrap in paragraph
+                        htmlContent = `<p>${content.replace(/\n/g, '<br>')}</p>`;
+                    }
+
+                    // Create a new document with the imported content
+                    const newDoc = {
+                        id: generateId(),
+                        title: file.name.replace(/\.(md|markdown|txt|html)$/i, ''),
+                        content: htmlContent,
+                        createdAt: Date.now(),
+                        updatedAt: Date.now()
+                    };
+
+                    documents.unshift(newDoc);
+                    switchDocument(newDoc.id);
+
+                    // Enable checkboxes for task lists
+                    editor.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.removeAttribute('disabled'));
+
+                    // Update stats and outline
+                    updateStats();
+                    updateOutline();
+
+                    // Focus editor
+                    editor.focus();
+                };
+
+                reader.readAsText(file);
+
+                // Clean up
+                document.body.removeChild(fileInput);
+            };
+
+            // Trigger file selection
+            document.body.appendChild(fileInput);
+            fileInput.click();
+        };
+    }
+
+
 
     // Close modals
     document.querySelectorAll('.close-btn, .modal-backdrop').forEach(el => {
