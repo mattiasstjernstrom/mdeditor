@@ -18,9 +18,11 @@
     --text-warning: #a46800;
     --text-success: #10b981;
     --text-danger: #ef4444;
-    --bg-warning: rgba(255, 234, 5, 0.15);
-    --bg-success: rgba(16, 185, 129, 0.1);
-    --bg-danger: rgba(239, 68, 68, 0.1);
+    --bg-info: rgba(56, 139, 253, 0.1);
+    --bg-success: rgba(46, 160, 67, 0.1);
+    --bg-important: rgba(130, 80, 223, 0.1);
+    --bg-warning: rgba(210, 153, 34, 0.15);
+    --bg-danger: rgba(248, 81, 73, 0.1);
     --border-color: #e2e8f0;
     --border-subtle: #f1f5f9;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -79,9 +81,11 @@
     --text-warning: #f59e0b;
     --text-success: #34d399;
     --text-danger: #f87171;
-    --bg-warning: rgba(251, 191, 36, 0.1);
-    --bg-success: rgba(52, 211, 153, 0.1);
-    --bg-danger: rgba(248, 113, 113, 0.1);
+    --bg-info: rgba(56, 139, 253, 0.15);
+    --bg-success: rgba(46, 160, 67, 0.15);
+    --bg-important: rgba(130, 80, 223, 0.15);
+    --bg-warning: rgba(210, 153, 34, 0.15);
+    --bg-danger: rgba(248, 81, 73, 0.15);
     --border-color: #334155;
     --border-subtle: #1e293b;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
@@ -149,9 +153,6 @@
     background: var(--bg-sidebar);
 }
 
-[data-theme="dark"] .alert {
-    background: var(--border-subtle);
-}
 
 [data-theme="dark"] blockquote {
     background: var(--border-subtle);
@@ -1967,7 +1968,7 @@ body {
 }
 
 .alert-note {
-    background: var(--bg-success); /* Use existing backgrounds or fixed tinted ones */
+    background: var(--bg-info);
     border-color: var(--alert-info);
 }
 
@@ -1985,7 +1986,7 @@ body {
 }
 
 .alert-important {
-    background: var(--accent-light);
+    background: var(--bg-important);
     border-color: var(--alert-important);
 }
 
